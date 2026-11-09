@@ -2,6 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+// EN: Assembly metadata (name, version, copyright) shown in CDLL.exe > Properties > Details.
+// AR: بيانات تعريف البرنامج (الاسم، الإصدار، حقوق النسخ) التي تظهر في CDLL.exe > خصائص > التفاصيل.
+
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
