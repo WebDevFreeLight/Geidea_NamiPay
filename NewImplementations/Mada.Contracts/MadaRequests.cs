@@ -1,10 +1,12 @@
 ﻿using System.Globalization;
 
-namespace Mada.Api.Services;
+namespace Mada.Contracts;
 
 /// <summary>
 /// EN: Builds the request strings sent to the terminal. Formats are taken from the old sample (CDLL\Form1.cs).
+///     Lives in Mada.Contracts so Mada.Api and Mada.Simulator build and validate requests the same way.
 /// AR: يبني نصوص الطلبات المُرسلة إلى الجهاز. الصيغ مأخوذة من المثال القديم (CDLL\Form1.cs).
+///     موجود في Mada.Contracts حتى يبني Mada.Api و Mada.Simulator الطلبات ويتحققا منها بنفس الطريقة.
 /// </summary>
 public static class MadaRequests
 {

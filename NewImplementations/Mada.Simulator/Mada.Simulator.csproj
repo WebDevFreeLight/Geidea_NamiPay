@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EN: Standalone terminal SIMULATOR with the same 12 buttons as the old CDLL form.
+        No mada terminal, no madaapi DLLs and no Mada.Api needed. Nothing is ever sent anywhere.
+        The old CDLL project is not referenced or changed.
+    AR: محاكي مستقل للجهاز بنفس أزرار نافذة CDLL القديمة الاثني عشر.
+        لا يحتاج جهاز مدى ولا مكتبات madaapi ولا Mada.Api، ولا يُرسل أي شيء إلى أي مكان.
+        مشروع CDLL القديم غير مرتبط ولم يتم تعديله.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EN: Shared result types + request builder (MadaRequests).   AR: أنواع النتائج المشتركة وباني الطلبات (MadaRequests). -->
+    <ProjectReference Include="..\Mada.Contracts\Mada.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

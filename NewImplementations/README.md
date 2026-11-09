@@ -54,6 +54,24 @@ dotnet run --project Mada.WinForms
 **EN:** Choose the connection (Tcp/Com) and press a button. The JSON result appears on the right.
 **AR:** اختر نوع الاتصال (Tcp/Com) واضغط أي زر، وستظهر نتيجة JSON على اليمين.
 
+## Standalone simulator (no device) / المحاكي المستقل (بدون جهاز)
+
+**EN:** `Mada.Simulator` is a separate window with the **same 12 buttons as the old CDLL form** (USB on the left, TCP on the right). It needs no terminal, no madaapi DLL and no Mada.Api, and nothing is sent anywhere. The old `CDLL` project is not changed.
+**AR:** `Mada.Simulator` نافذة مستقلة بـ **نفس أزرار نافذة CDLL القديمة الاثني عشر** (USB يساراً و TCP يميناً). لا يحتاج جهازاً ولا مكتبة madaapi ولا Mada.Api، ولا يُرسل أي شيء إلى أي مكان. مشروع `CDLL` القديم لم يتغير.
+
+```powershell
+dotnet run --project Mada.Simulator
+```
+
+| Simulated result / النتيجة | EN | AR |
+|---|---|---|
+| Approved (000) | Everything succeeds | كل شيء ينجح |
+| Declined (100) | Bank declines. **100 is illustrative**, real codes come from the vendor spec | البنك يرفض. **الرمز 100 للتوضيح فقط** والرموز الحقيقية من المورّد |
+| No response, card charged | Status `-3` (what the real DLL returns with no terminal). The card **was** charged, so press **Repeat** to recover it | الحالة `-3` (ما تُعيده المكتبة الفعلية بدون جهاز). تم الخصم **فعلاً**، لذلك اضغط **Repeat** لاسترجاع العملية |
+
+**EN:** Each log entry shows the request string the real DLL would receive (e.g. `4371;0;1!`) and the COM port / IP the old button used (not contacted). An approved purchase fills the refund RRN and date automatically.
+**AR:** كل سجل يعرض نص الطلب الذي كانت ستستلمه المكتبة الفعلية (مثل `4371;0;1!`) ومنفذ COM أو عنوان IP الذي كان يستخدمه الزر القديم (بدون اتصال). عملية الشراء المقبولة تملأ رقم الاسترجاع المرجعي وتاريخه تلقائياً.
+
 ## Configuration / الإعدادات (`Mada.Api/appsettings.json`)
 
 | Key | EN | AR |

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mada.Api", "Mada.Api\Mada.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mada.WinForms", "Mada.WinForms\Mada.WinForms.csproj", "{322B27EA-B45F-4699-8990-DEAF35F4EB70}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mada.Simulator", "Mada.Simulator\Mada.Simulator.csproj", "{3EB1F2C5-EC28-466D-94C8-7590FF79470C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{322B27EA-B45F-4699-8990-DEAF35F4EB70}.Release|x64.Build.0 = Release|Any CPU
 		{322B27EA-B45F-4699-8990-DEAF35F4EB70}.Release|x86.ActiveCfg = Release|Any CPU
 		{322B27EA-B45F-4699-8990-DEAF35F4EB70}.Release|x86.Build.0 = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|x64.Build.0 = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Debug|x86.Build.0 = Debug|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|x64.ActiveCfg = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|x64.Build.0 = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|x86.ActiveCfg = Release|Any CPU
+		{3EB1F2C5-EC28-466D-94C8-7590FF79470C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
