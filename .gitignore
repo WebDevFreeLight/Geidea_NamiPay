@@ -1,0 +1,23 @@
+# Build output
+[Bb]in/*
+[Oo]bj/
+*.pdb
+*.exe
+*.vshost.*
+
+# Keep the native mada payment DLLs loaded via DllImport at runtime
+!CDLL/bin/
+CDLL/bin/*
+!CDLL/bin/Debug/
+CDLL/bin/Debug/*
+!CDLL/bin/Debug/madaapi_v1_8.dll
+!CDLL/bin/Debug/madaapi_v1_9.dll
+
+# Runtime logs / receipts (may contain transaction data)
+ECRLOG_*.txt
+reconrcpt.html
+
+# Visual Studio
+.vs/
+*.user
+*.suo

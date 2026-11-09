@@ -1,0 +1,234 @@
+﻿namespace CDLL
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.Trans_richTextBox = new System.Windows.Forms.RichTextBox();
+            this.button4 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
+            this.button7 = new System.Windows.Forms.Button();
+            this.CheckStatus_button = new System.Windows.Forms.Button();
+            this.Recn_button = new System.Windows.Forms.Button();
+            this.Recon_TCP = new System.Windows.Forms.Button();
+            this.button8 = new System.Windows.Forms.Button();
+            this.button9 = new System.Windows.Forms.Button();
+            this.button10 = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(0, 0);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 28);
+            this.button1.TabIndex = 4;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(44, 150);
+            this.button2.Margin = new System.Windows.Forms.Padding(4);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(119, 28);
+            this.button2.TabIndex = 1;
+            this.button2.Text = "Purchase_USB";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(205, 150);
+            this.button3.Margin = new System.Windows.Forms.Padding(4);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(119, 28);
+            this.button3.TabIndex = 2;
+            this.button3.Text = "Purchase_TCP";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click_1);
+            // 
+            // Trans_richTextBox
+            // 
+            this.Trans_richTextBox.Location = new System.Drawing.Point(695, 201);
+            this.Trans_richTextBox.Margin = new System.Windows.Forms.Padding(4);
+            this.Trans_richTextBox.Name = "Trans_richTextBox";
+            this.Trans_richTextBox.Size = new System.Drawing.Size(248, 214);
+            this.Trans_richTextBox.TabIndex = 3;
+            this.Trans_richTextBox.Text = "";
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(45, 415);
+            this.button4.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(119, 33);
+            this.button4.TabIndex = 5;
+            this.button4.Text = "Get Merchant";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(204, 415);
+            this.button5.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(119, 33);
+            this.button5.TabIndex = 6;
+            this.button5.Text = "Terminal ID";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(44, 95);
+            this.button6.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(119, 29);
+            this.button6.TabIndex = 7;
+            this.button6.Text = "Check status";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // button7
+            // 
+            this.button7.Location = new System.Drawing.Point(205, 290);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(118, 31);
+            this.button7.TabIndex = 8;
+            this.button7.Text = "Refund_TCP";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
+            // 
+            // CheckStatus_button
+            // 
+            this.CheckStatus_button.Location = new System.Drawing.Point(206, 94);
+            this.CheckStatus_button.Name = "CheckStatus_button";
+            this.CheckStatus_button.Size = new System.Drawing.Size(119, 30);
+            this.CheckStatus_button.TabIndex = 9;
+            this.CheckStatus_button.Text = "TCP_Checkstatus";
+            this.CheckStatus_button.UseVisualStyleBackColor = true;
+            this.CheckStatus_button.Click += new System.EventHandler(this.CheckStatus_button_Click);
+            // 
+            // Recn_button
+            // 
+            this.Recn_button.Location = new System.Drawing.Point(205, 224);
+            this.Recn_button.Name = "Recn_button";
+            this.Recn_button.Size = new System.Drawing.Size(118, 34);
+            this.Recn_button.TabIndex = 10;
+            this.Recn_button.Text = "Recon_TCP";
+            this.Recn_button.UseVisualStyleBackColor = true;
+            this.Recn_button.Click += new System.EventHandler(this.Recn_button_Click);
+            // 
+            // Recon_TCP
+            // 
+            this.Recon_TCP.Location = new System.Drawing.Point(45, 225);
+            this.Recon_TCP.Name = "Recon_TCP";
+            this.Recon_TCP.Size = new System.Drawing.Size(118, 29);
+            this.Recon_TCP.TabIndex = 11;
+            this.Recon_TCP.Text = "Recon_USB";
+            this.Recon_TCP.UseVisualStyleBackColor = true;
+            this.Recon_TCP.Click += new System.EventHandler(this.Recon_TCP_Click);
+            // 
+            // button8
+            // 
+            this.button8.Location = new System.Drawing.Point(44, 290);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(119, 26);
+            this.button8.TabIndex = 12;
+            this.button8.Text = "Refund_USB";
+            this.button8.UseVisualStyleBackColor = true;
+            this.button8.Click += new System.EventHandler(this.button8_Click);
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(206, 350);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(118, 29);
+            this.button9.TabIndex = 13;
+            this.button9.Text = "Repeat_TCP";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
+            // 
+            // button10
+            // 
+            this.button10.Location = new System.Drawing.Point(45, 350);
+            this.button10.Name = "button10";
+            this.button10.Size = new System.Drawing.Size(119, 29);
+            this.button10.TabIndex = 14;
+            this.button10.Text = "Repeat_USB";
+            this.button10.UseVisualStyleBackColor = true;
+            this.button10.Click += new System.EventHandler(this.button10_Click);
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1067, 554);
+            this.Controls.Add(this.button10);
+            this.Controls.Add(this.button9);
+            this.Controls.Add(this.button8);
+            this.Controls.Add(this.Recon_TCP);
+            this.Controls.Add(this.Recn_button);
+            this.Controls.Add(this.CheckStatus_button);
+            this.Controls.Add(this.button7);
+            this.Controls.Add(this.button6);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.button4);
+            this.Controls.Add(this.Trans_richTextBox);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.button1);
+            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Name = "Form1";
+            this.Text = "Form1_Testing";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.RichTextBox Trans_richTextBox;
+        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button CheckStatus_button;
+        private System.Windows.Forms.Button Recn_button;
+        private System.Windows.Forms.Button Recon_TCP;
+        private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.Button button10;
+    }
+}
+
