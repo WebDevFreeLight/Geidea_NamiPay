@@ -22,31 +22,30 @@
 
 1. **EN:** Open `CDLL.sln` in Visual Studio.
    **AR:** افتح `CDLL.sln` في Visual Studio.
-2. **EN:** USB: find the terminal's COM port in *Device Manager > Ports (COM & LPT)*. Put it in `CDLL/app.config` → `PaymentMachinePort`, **and** update the hard-coded port numbers in `Form1.cs` (5, 9, 15, 17).
-   **AR:** USB: اعرف رقم منفذ COM للجهاز من *إدارة الأجهزة > المنافذ (COM و LPT)*. ضعه في `CDLL/app.config` ← `PaymentMachinePort`، **و** عدّل أرقام المنافذ المكتوبة مباشرة في `Form1.cs` (5، 9، 15، 17).
-3. **EN:** TCP: replace the hard-coded IPs in `Form1.cs` with your terminal's IP (port is `6100`).
-   **AR:** TCP: استبدل عناوين IP المكتوبة في `Form1.cs` بعنوان جهازك (المنفذ `6100`).
-4. **EN:** Press **F5** to build and run.
+2. **EN:** Press **F5** to build and run.
    **AR:** اضغط **F5** للبناء والتشغيل.
+3. **EN:** In the window, set **Connection settings**: the COM port (from *Device Manager > Ports (COM & LPT)*), serial settings, the terminal IP and TCP port. Set **Transaction values**: amounts, original RRN and date. Everything is editable; nothing is hard-coded.
+   **AR:** في النافذة اضبط **إعدادات الاتصال**: منفذ COM (من *إدارة الأجهزة > المنافذ (COM و LPT)*)، إعدادات المنفذ التسلسلي، عنوان IP للجهاز ومنفذ TCP. واضبط **قيم العملية**: المبالغ والرقم المرجعي والتاريخ الأصليين. كل شيء قابل للتعديل، ولا توجد قيم مكتوبة مباشرة.
+4. **EN:** The starting values come from `CDLL/app.config`. **Save defaults** writes the current values to `CDLL.exe.config`. Rebuilding copies `app.config` over it again, so put permanent defaults in `app.config`.
+   **AR:** القيم الأولية تأتي من `CDLL/app.config`. زر **حفظ الافتراضي** يكتب القيم الحالية في `CDLL.exe.config`، وإعادة البناء تنسخ `app.config` فوقه مرة أخرى، لذلك ضع القيم الدائمة في `app.config`.
 
 ## Buttons / الأزرار
 
 | Button | EN | AR | Link / الاتصال |
 |---|---|---|---|
-| Check status | Is the terminal ready? | هل الجهاز جاهز؟ | COM (port from `app.config`) |
-| TCP_Checkstatus | Is the terminal ready? | هل الجهاز جاهز؟ | TCP |
-| Purchase_USB / Purchase_TCP | Purchase (test amount) | عملية شراء (مبلغ تجريبي) | COM / TCP |
-| Refund_USB / Refund_TCP | Refund an earlier purchase (needs original RRN + date) | استرجاع عملية سابقة (يحتاج الرقم المرجعي والتاريخ الأصلي) | COM / TCP |
-| Repeat_USB / Repeat_TCP | Get the last transaction's result again | جلب نتيجة آخر عملية مرة أخرى | COM / TCP |
-| Recon_USB / Recon_TCP | End-of-day reconciliation | التسوية / إقفال نهاية اليوم | COM / TCP |
-| Get Merchant | Merchant name/address (EN + AR) | اسم التاجر وعنوانه (عربي + إنجليزي) | COM |
-| Terminal ID | Terminal ID | رقم الجهاز | TCP |
+| Check status (USB) / (TCP) | Is the terminal ready? | هل الجهاز جاهز؟ | COM / TCP |
+| Purchase (USB) / (TCP) | Purchase of the "Purchase amount" | شراء بقيمة "مبلغ الشراء" | COM / TCP |
+| Refund (USB) / (TCP) | Refund an earlier purchase (needs original RRN + date) | استرجاع عملية سابقة (يحتاج الرقم المرجعي والتاريخ الأصلي) | COM / TCP |
+| Repeat last (USB) / (TCP) | Get the last transaction's result again | جلب نتيجة آخر عملية مرة أخرى | COM / TCP |
+| Reconciliation (USB) / (TCP) | End-of-day reconciliation | التسوية / إقفال نهاية اليوم | COM / TCP |
+| Merchant info (USB) | Merchant name/address (EN + AR) | اسم التاجر وعنوانه (عربي + إنجليزي) | COM |
+| Terminal ID (TCP) | Terminal ID | رقم الجهاز | TCP |
 
 **EN:** Each button shows the DLL's return code in a message box, then prints the result fields in the text box on the right.
 **AR:** كل زر يعرض رمز الإرجاع من المكتبة في رسالة، ثم يطبع حقول النتيجة في مربع النص على اليمين.
 
-**EN:** Amounts are in **halalas**: `4371` = 43.71 SAR.
-**AR:** المبالغ **بالهللة**: `4371` = 43.71 ريال.
+**EN:** Amounts are typed in SAR on the form and sent in **halalas**: 43.71 SAR -> `4371`.
+**AR:** المبالغ تُكتب بالريال في النافذة وتُرسل **بالهللة**: 43.71 ريال -> `4371`.
 
 ## Logs / السجلات
 

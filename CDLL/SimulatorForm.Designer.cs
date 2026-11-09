@@ -65,9 +65,9 @@ namespace CDLL
             ((System.ComponentModel.ISupportInitialize)(this.numAmount)).BeginInit();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
-            //
+            // 
             // grpInput
-            //
+            // 
             this.grpInput.Controls.Add(this.lblAmount);
             this.grpInput.Controls.Add(this.numAmount);
             this.grpInput.Controls.Add(this.lblRrn);
@@ -82,101 +82,113 @@ namespace CDLL
             this.grpInput.TabIndex = 0;
             this.grpInput.TabStop = false;
             this.grpInput.Text = "Simulation input / مدخلات المحاكاة";
-            //
+            // 
             // lblAmount
-            //
+            // 
             this.lblAmount.AutoSize = true;
             this.lblAmount.Location = new System.Drawing.Point(12, 30);
             this.lblAmount.Name = "lblAmount";
-            this.lblAmount.Size = new System.Drawing.Size(118, 15);
+            this.lblAmount.Size = new System.Drawing.Size(147, 20);
             this.lblAmount.TabIndex = 0;
             this.lblAmount.Text = "Amount SAR / المبلغ:";
-            //
+            // 
             // numAmount
-            //
+            // 
             this.numAmount.DecimalPlaces = 2;
             this.numAmount.Location = new System.Drawing.Point(200, 26);
-            this.numAmount.Maximum = new decimal(new int[] { 999999999, 0, 0, 0 });
-            this.numAmount.Minimum = new decimal(new int[] { 1, 0, 0, 131072 });
+            this.numAmount.Maximum = new decimal(new int[] {
+            999999999,
+            0,
+            0,
+            0});
+            this.numAmount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
             this.numAmount.Name = "numAmount";
-            this.numAmount.Size = new System.Drawing.Size(120, 23);
+            this.numAmount.Size = new System.Drawing.Size(120, 27);
             this.numAmount.TabIndex = 1;
-            this.numAmount.Value = new decimal(new int[] { 4371, 0, 0, 131072 });
-            //
+            this.numAmount.Value = new decimal(new int[] {
+            4371,
+            0,
+            0,
+            131072});
+            // 
             // lblRrn
-            //
+            // 
             this.lblRrn.AutoSize = true;
             this.lblRrn.Location = new System.Drawing.Point(12, 62);
             this.lblRrn.Name = "lblRrn";
-            this.lblRrn.Size = new System.Drawing.Size(180, 15);
+            this.lblRrn.Size = new System.Drawing.Size(211, 20);
             this.lblRrn.TabIndex = 2;
             this.lblRrn.Text = "Original RRN (refund) / المرجع:";
-            //
+            // 
             // txtRrn
-            //
-            this.txtRrn.Location = new System.Drawing.Point(200, 58);
+            // 
+            this.txtRrn.Location = new System.Drawing.Point(233, 58);
             this.txtRrn.MaxLength = 12;
             this.txtRrn.Name = "txtRrn";
-            this.txtRrn.Size = new System.Drawing.Size(120, 23);
+            this.txtRrn.Size = new System.Drawing.Size(120, 27);
             this.txtRrn.TabIndex = 3;
-            //
+            // 
             // lblDate
-            //
+            // 
             this.lblDate.AutoSize = true;
             this.lblDate.Location = new System.Drawing.Point(12, 94);
             this.lblDate.Name = "lblDate";
-            this.lblDate.Size = new System.Drawing.Size(182, 15);
+            this.lblDate.Size = new System.Drawing.Size(209, 20);
             this.lblDate.TabIndex = 4;
             this.lblDate.Text = "Original date (refund) / التاريخ:";
-            //
+            // 
             // dtpDate
-            //
+            // 
             this.dtpDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.dtpDate.Location = new System.Drawing.Point(200, 90);
+            this.dtpDate.Location = new System.Drawing.Point(230, 90);
             this.dtpDate.Name = "dtpDate";
-            this.dtpDate.Size = new System.Drawing.Size(120, 23);
+            this.dtpDate.Size = new System.Drawing.Size(120, 27);
             this.dtpDate.TabIndex = 5;
-            //
+            // 
             // lblScenario
-            //
+            // 
             this.lblScenario.AutoSize = true;
             this.lblScenario.Location = new System.Drawing.Point(12, 126);
             this.lblScenario.Name = "lblScenario";
-            this.lblScenario.Size = new System.Drawing.Size(155, 15);
+            this.lblScenario.Size = new System.Drawing.Size(174, 20);
             this.lblScenario.TabIndex = 6;
             this.lblScenario.Text = "Simulated result / النتيجة:";
-            //
+            // 
             // cboScenario
-            //
+            // 
             this.cboScenario.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboScenario.FormattingEnabled = true;
             this.cboScenario.Location = new System.Drawing.Point(200, 122);
             this.cboScenario.Name = "cboScenario";
-            this.cboScenario.Size = new System.Drawing.Size(218, 23);
+            this.cboScenario.Size = new System.Drawing.Size(218, 28);
             this.cboScenario.TabIndex = 7;
-            //
+            // 
             // lblUsb
-            //
+            // 
             this.lblUsb.AutoSize = true;
             this.lblUsb.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblUsb.Location = new System.Drawing.Point(12, 184);
             this.lblUsb.Name = "lblUsb";
-            this.lblUsb.Size = new System.Drawing.Size(65, 15);
+            this.lblUsb.Size = new System.Drawing.Size(87, 20);
             this.lblUsb.TabIndex = 1;
             this.lblUsb.Text = "USB / COM";
-            //
+            // 
             // lblTcp
-            //
+            // 
             this.lblTcp.AutoSize = true;
             this.lblTcp.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblTcp.Location = new System.Drawing.Point(237, 184);
             this.lblTcp.Name = "lblTcp";
-            this.lblTcp.Size = new System.Drawing.Size(44, 15);
+            this.lblTcp.Size = new System.Drawing.Size(56, 20);
             this.lblTcp.TabIndex = 2;
             this.lblTcp.Text = "TCP/IP";
-            //
+            // 
             // btnStatusUsb
-            //
+            // 
             this.btnStatusUsb.Location = new System.Drawing.Point(12, 205);
             this.btnStatusUsb.Name = "btnStatusUsb";
             this.btnStatusUsb.Size = new System.Drawing.Size(205, 42);
@@ -184,9 +196,9 @@ namespace CDLL
             this.btnStatusUsb.Text = "Check status\r\nفحص الحالة";
             this.btnStatusUsb.UseVisualStyleBackColor = true;
             this.btnStatusUsb.Click += new System.EventHandler(this.btnStatusUsb_Click);
-            //
+            // 
             // btnStatusTcp
-            //
+            // 
             this.btnStatusTcp.Location = new System.Drawing.Point(237, 205);
             this.btnStatusTcp.Name = "btnStatusTcp";
             this.btnStatusTcp.Size = new System.Drawing.Size(205, 42);
@@ -194,9 +206,9 @@ namespace CDLL
             this.btnStatusTcp.Text = "TCP_Checkstatus\r\nفحص الحالة";
             this.btnStatusTcp.UseVisualStyleBackColor = true;
             this.btnStatusTcp.Click += new System.EventHandler(this.btnStatusTcp_Click);
-            //
+            // 
             // btnPurchaseUsb
-            //
+            // 
             this.btnPurchaseUsb.Location = new System.Drawing.Point(12, 253);
             this.btnPurchaseUsb.Name = "btnPurchaseUsb";
             this.btnPurchaseUsb.Size = new System.Drawing.Size(205, 42);
@@ -204,9 +216,9 @@ namespace CDLL
             this.btnPurchaseUsb.Text = "Purchase_USB\r\nشراء";
             this.btnPurchaseUsb.UseVisualStyleBackColor = true;
             this.btnPurchaseUsb.Click += new System.EventHandler(this.btnPurchaseUsb_Click);
-            //
+            // 
             // btnPurchaseTcp
-            //
+            // 
             this.btnPurchaseTcp.Location = new System.Drawing.Point(237, 253);
             this.btnPurchaseTcp.Name = "btnPurchaseTcp";
             this.btnPurchaseTcp.Size = new System.Drawing.Size(205, 42);
@@ -214,9 +226,9 @@ namespace CDLL
             this.btnPurchaseTcp.Text = "Purchase_TCP\r\nشراء";
             this.btnPurchaseTcp.UseVisualStyleBackColor = true;
             this.btnPurchaseTcp.Click += new System.EventHandler(this.btnPurchaseTcp_Click);
-            //
+            // 
             // btnReconUsb
-            //
+            // 
             this.btnReconUsb.Location = new System.Drawing.Point(12, 301);
             this.btnReconUsb.Name = "btnReconUsb";
             this.btnReconUsb.Size = new System.Drawing.Size(205, 42);
@@ -224,9 +236,9 @@ namespace CDLL
             this.btnReconUsb.Text = "Recon_USB\r\nالتسوية";
             this.btnReconUsb.UseVisualStyleBackColor = true;
             this.btnReconUsb.Click += new System.EventHandler(this.btnReconUsb_Click);
-            //
+            // 
             // btnReconTcp
-            //
+            // 
             this.btnReconTcp.Location = new System.Drawing.Point(237, 301);
             this.btnReconTcp.Name = "btnReconTcp";
             this.btnReconTcp.Size = new System.Drawing.Size(205, 42);
@@ -234,9 +246,9 @@ namespace CDLL
             this.btnReconTcp.Text = "Recon_TCP\r\nالتسوية";
             this.btnReconTcp.UseVisualStyleBackColor = true;
             this.btnReconTcp.Click += new System.EventHandler(this.btnReconTcp_Click);
-            //
+            // 
             // btnRefundUsb
-            //
+            // 
             this.btnRefundUsb.Location = new System.Drawing.Point(12, 349);
             this.btnRefundUsb.Name = "btnRefundUsb";
             this.btnRefundUsb.Size = new System.Drawing.Size(205, 42);
@@ -244,9 +256,9 @@ namespace CDLL
             this.btnRefundUsb.Text = "Refund_USB\r\nاسترجاع";
             this.btnRefundUsb.UseVisualStyleBackColor = true;
             this.btnRefundUsb.Click += new System.EventHandler(this.btnRefundUsb_Click);
-            //
+            // 
             // btnRefundTcp
-            //
+            // 
             this.btnRefundTcp.Location = new System.Drawing.Point(237, 349);
             this.btnRefundTcp.Name = "btnRefundTcp";
             this.btnRefundTcp.Size = new System.Drawing.Size(205, 42);
@@ -254,9 +266,9 @@ namespace CDLL
             this.btnRefundTcp.Text = "Refund_TCP\r\nاسترجاع";
             this.btnRefundTcp.UseVisualStyleBackColor = true;
             this.btnRefundTcp.Click += new System.EventHandler(this.btnRefundTcp_Click);
-            //
+            // 
             // btnRepeatUsb
-            //
+            // 
             this.btnRepeatUsb.Location = new System.Drawing.Point(12, 397);
             this.btnRepeatUsb.Name = "btnRepeatUsb";
             this.btnRepeatUsb.Size = new System.Drawing.Size(205, 42);
@@ -264,9 +276,9 @@ namespace CDLL
             this.btnRepeatUsb.Text = "Repeat_USB\r\nإعادة آخر عملية";
             this.btnRepeatUsb.UseVisualStyleBackColor = true;
             this.btnRepeatUsb.Click += new System.EventHandler(this.btnRepeatUsb_Click);
-            //
+            // 
             // btnRepeatTcp
-            //
+            // 
             this.btnRepeatTcp.Location = new System.Drawing.Point(237, 397);
             this.btnRepeatTcp.Name = "btnRepeatTcp";
             this.btnRepeatTcp.Size = new System.Drawing.Size(205, 42);
@@ -274,9 +286,9 @@ namespace CDLL
             this.btnRepeatTcp.Text = "Repeat_TCP\r\nإعادة آخر عملية";
             this.btnRepeatTcp.UseVisualStyleBackColor = true;
             this.btnRepeatTcp.Click += new System.EventHandler(this.btnRepeatTcp_Click);
-            //
+            // 
             // btnMerchant
-            //
+            // 
             this.btnMerchant.Location = new System.Drawing.Point(12, 445);
             this.btnMerchant.Name = "btnMerchant";
             this.btnMerchant.Size = new System.Drawing.Size(205, 42);
@@ -284,9 +296,9 @@ namespace CDLL
             this.btnMerchant.Text = "Get Merchant\r\nبيانات التاجر";
             this.btnMerchant.UseVisualStyleBackColor = true;
             this.btnMerchant.Click += new System.EventHandler(this.btnMerchant_Click);
-            //
+            // 
             // btnTerminalId
-            //
+            // 
             this.btnTerminalId.Location = new System.Drawing.Point(237, 445);
             this.btnTerminalId.Name = "btnTerminalId";
             this.btnTerminalId.Size = new System.Drawing.Size(205, 42);
@@ -294,9 +306,9 @@ namespace CDLL
             this.btnTerminalId.Text = "Terminal ID\r\nرقم الجهاز";
             this.btnTerminalId.UseVisualStyleBackColor = true;
             this.btnTerminalId.Click += new System.EventHandler(this.btnTerminalId_Click);
-            //
+            // 
             // btnClear
-            //
+            // 
             this.btnClear.Location = new System.Drawing.Point(12, 500);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(120, 30);
@@ -304,11 +316,11 @@ namespace CDLL
             this.btnClear.Text = "Clear / مسح";
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
-            //
+            // 
             // txtOutput
-            //
-            this.txtOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            // 
+            this.txtOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtOutput.BackColor = System.Drawing.SystemColors.Window;
             this.txtOutput.Font = new System.Drawing.Font("Consolas", 10F);
@@ -318,28 +330,28 @@ namespace CDLL
             this.txtOutput.Size = new System.Drawing.Size(493, 570);
             this.txtOutput.TabIndex = 16;
             this.txtOutput.Text = "";
-            //
+            // 
             // statusStrip
-            //
+            // 
+            this.statusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip.Location = new System.Drawing.Point(0, 588);
+            this.statusStrip.Location = new System.Drawing.Point(0, 584);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(960, 22);
+            this.statusStrip.Size = new System.Drawing.Size(960, 26);
             this.statusStrip.TabIndex = 17;
-            //
+            // 
             // lblStatus
-            //
+            // 
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(300, 17);
+            this.lblStatus.Size = new System.Drawing.Size(301, 20);
             this.lblStatus.Text = "Ready (no device needed) / جاهز (بدون جهاز)";
-            //
+            // 
             // SimulatorForm
-            //
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(960, 610);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Controls.Add(this.grpInput);
             this.Controls.Add(this.lblUsb);
             this.Controls.Add(this.lblTcp);
@@ -358,10 +370,12 @@ namespace CDLL
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.txtOutput);
             this.Controls.Add(this.statusStrip);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.MinimumSize = new System.Drawing.Size(976, 649);
             this.Name = "SimulatorForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CDLL - mada Terminal SIMULATOR - no device, no real payments / محاكي جهاز مدى - بدون جهاز";
+            this.Text = "CDLL - mada Terminal SIMULATOR - no device, no real payments / محاكي جهاز مدى - ب" +
+    "دون جهاز";
             this.grpInput.ResumeLayout(false);
             this.grpInput.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numAmount)).EndInit();

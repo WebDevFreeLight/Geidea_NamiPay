@@ -5,84 +5,68 @@
 //     Each button on the form runs one terminal operation over either:
 //       - USB / serial (COM port)  -> functions with "COM" in the name
 //       - TCP/IP (network)         -> functions with "TCPIP" in the name
+//     Every value the buttons use (COM port, serial settings, IP, TCP port, amounts, RRN, date)
+//     is typed on the form. The starting values come from app.config, and "Save defaults"
+//     writes the current values back, so nothing is hard-coded in the buttons any more.
 // AR: تطبيق تجريبي (Windows Forms) يمثّل نظام نقاط البيع (ECR) ويتواصل مع جهاز الدفع "مدى"
 //     عبر مكتبات المورّد الأصلية (madaapi_v1_9.dll و madaapi_v1_8.dll).
 //     كل زر في النافذة ينفّذ عملية واحدة على الجهاز عبر إحدى الطريقتين:
 //       - USB / منفذ تسلسلي (COM)   -> الدوال التي تحتوي أسماؤها على "COM"
 //       - شبكة TCP/IP               -> الدوال التي تحتوي أسماؤها على "TCPIP"
+//     كل قيمة تستخدمها الأزرار (منفذ COM، إعدادات المنفذ التسلسلي، IP، منفذ TCP، المبالغ، الرقم
+//     المرجعي، التاريخ) تُكتب في النافذة. القيم الأولية تأتي من app.config، وزر "حفظ الافتراضي"
+//     يكتب القيم الحالية فيه، لذلك لم تعد هناك قيم مكتوبة مباشرة داخل الأزرار.
 //
 // -------------------------------------------------------------------------------------
 // EN: Button -> handler -> operation map (button texts come from Form1.Designer.cs)
 // AR: خريطة الأزرار -> الدالة -> العملية (نصوص الأزرار من ملف Form1.Designer.cs)
 //
-//   Button text         Handler                  Operation (EN)                 العملية (AR)
-//   -----------------   ----------------------   ----------------------------   -----------------------
-//   Check status        button6_Click            Terminal status (COM)          فحص حالة الجهاز (COM)
-//   TCP_Checkstatus     CheckStatus_button_Click Terminal status (TCP)          فحص حالة الجهاز (TCP)
-//   Purchase_USB        button2_Click            Purchase (COM)                 عملية شراء (COM)
-//   Purchase_TCP        button3_Click_1          Purchase (TCP)                 عملية شراء (TCP)
-//   Recon_USB           Recon_TCP_Click  (!)     Reconciliation (COM)           التسوية / إقفال اليوم (COM)
-//   Recon_TCP           Recn_button_Click        Reconciliation (TCP)           التسوية / إقفال اليوم (TCP)
-//   Refund_USB          button8_Click            Refund (COM)                   عملية استرجاع (COM)
-//   Refund_TCP          button7_Click            Refund (TCP)                   عملية استرجاع (TCP)
-//   Repeat_USB          button10_Click           Repeat last trxn (COM)         إعادة آخر عملية (COM)
-//   Repeat_TCP          button9_Click            Repeat last trxn (TCP)         إعادة آخر عملية (TCP)
-//   Get Merchant        button4_Click            Merchant details (COM)         بيانات التاجر (COM)
-//   Terminal ID         button5_Click            Terminal ID (TCP)              رقم الجهاز (TCP)
-//
-//   (!) EN: The method named "Recon_TCP_Click" is wired to the button labelled "Recon_USB"
-//           and really uses the COM function. The names are swapped, the behaviour is USB.
-//       AR: الدالة المسمّاة "Recon_TCP_Click" مربوطة بالزر "Recon_USB" وتستخدم فعلياً دالة COM.
-//           الأسماء معكوسة، لكن السلوك الفعلي هو USB.
+//   Button                      Handler                Request             العملية (AR)
+//   -------------------------   --------------------   -----------------   -----------------------
+//   Check status (USB/TCP)      btnStatusUsb/Tcp       "04!"               فحص حالة الجهاز
+//   Purchase (USB/TCP)          btnPurchaseUsb/Tcp     "<amount>;0;1!"     عملية شراء
+//   Refund (USB/TCP)            btnRefundUsb/Tcp       "<amount>;<RRN>;<DDMMYYYY>;1;1!"   عملية استرجاع
+//   Repeat last (USB/TCP)       btnRepeatUsb/Tcp       "0B!"               إعادة آخر عملية
+//   Reconciliation (USB/TCP)    btnReconUsb/Tcp        "09;0!"             التسوية / إقفال اليوم
+//   Merchant info (USB)         btnMerchant            "0A!"               بيانات التاجر (COM فقط)
+//   Terminal ID (TCP)           btnTerminalId          "07!"               رقم الجهاز (TCP فقط)
+//   Clear log / Save defaults   btnClearLog / btnSaveDefaults              مسح السجل / حفظ الافتراضي
 //
 // -------------------------------------------------------------------------------------
-// EN: SHARED PARAMETERS used by the DLL functions
-// AR: المعاملات المشتركة المستخدمة في دوال المكتبة
+// EN: SHARED PARAMETERS used by the DLL functions (all taken from the form)
+// AR: المعاملات المشتركة المستخدمة في دوال المكتبة (كلها مأخوذة من النافذة)
 //
 //   COM (USB/serial) functions take:  (int port, int Rate, int x, int y, int z, ...)
-//     port  EN: COM port number (5 => "COM5"). Check Device Manager for the terminal's port.
-//           AR: رقم المنفذ التسلسلي (5 تعني "COM5"). راجع "إدارة الأجهزة" لمعرفة منفذ الجهاز.
-//     Rate  EN: Baud rate. Always 38400 in this sample.
-//           AR: سرعة النقل (Baud Rate). القيمة دائماً 38400 في هذا المثال.
-//     x     EN: Parity   (0 = none, Win32 NOPARITY).
-//           AR: التحقق من التماثل Parity  (0 = بدون).
-//     y     EN: Data bits (8).
-//           AR: عدد بتات البيانات (8).
-//     z     EN: Stop bits (0 = one stop bit, Win32 ONESTOPBIT).
-//           AR: بتات التوقف (0 = بت توقف واحد).
-//     EN: Order matches the unused locals in Recn_button_Click: baudSpeed, parity, dataBits, stopBits.
-//     AR: الترتيب مطابق للمتغيرات غير المستخدمة في Recn_button_Click: baudSpeed, parity, dataBits, stopBits.
+//     port  EN: "COM port" box (5 => "COM5"). Check Device Manager for the terminal's port.
+//           AR: خانة "منفذ COM" (5 تعني "COM5"). راجع "إدارة الأجهزة" لمعرفة منفذ الجهاز.
+//     Rate  EN: "Baud rate" box (default 38400).
+//           AR: خانة "سرعة النقل" (الافتراضي 38400).
+//     x     EN: "Parity" box (0 = none, Win32 NOPARITY).
+//           AR: خانة "التماثل" (0 = بدون).
+//     y     EN: "Data bits" box (default 8).
+//           AR: خانة "بتات البيانات" (الافتراضي 8).
+//     z     EN: "Stop bits" box (0 = one stop bit, Win32 ONESTOPBIT).
+//           AR: خانة "بتات التوقف" (0 = بت توقف واحد).
 //
 //   TCP/IP functions take:  (byte[] ip, byte[] port, ...)
-//     EN: IP address and TCP port of the terminal as ASCII bytes, e.g. "192.168.116.166" and "6100".
-//         The IPs are hard-coded per button below. Change them to your terminal's IP.
-//     AR: عنوان IP ومنفذ TCP للجهاز كبايتات ASCII، مثل "192.168.116.166" و "6100".
-//         العناوين مكتوبة مباشرة داخل كل زر أدناه. غيّرها إلى عنوان جهازك.
+//     EN: "Terminal IP" and "TCP port" boxes, sent as ASCII bytes + '\0', e.g. "192.168.116.166" and "6100".
+//     AR: خانتا "عنوان IP" و"منفذ TCP"، تُرسلان كبايتات ASCII مع '\0'، مثل "192.168.116.166" و "6100".
 //
 //   Request (input) parameters / معاملات الطلب (المدخلات):
 //     inOutBuff  EN: The request string as ASCII bytes. Requests end with "!".
 //                AR: نص الطلب كبايتات ASCII. الطلبات تنتهي بالرمز "!".
 //     intval     EN: 1-byte array holding the length of inOutBuff (so a request is at most 255 bytes).
 //                AR: مصفوفة ببايت واحد تحمل طول inOutBuff (لذلك الحد الأقصى للطلب 255 بايت).
-//     trnxType   EN: Transaction type. Used in this sample: 0 = Purchase, 2 = Refund.
-//                AR: نوع العملية. المستخدم في هذا المثال: 0 = شراء، 2 = استرجاع.
+//     trnxType   EN: Transaction type. Used here: 0 = Purchase, 2 = Refund.
+//                AR: نوع العملية. المستخدم هنا: 0 = شراء، 2 = استرجاع.
 //
-//   Request strings used in this file / نصوص الطلبات المستخدمة في هذا الملف:
-//     "04!"                             EN: Check status          AR: فحص الحالة
-//     "07!"                             EN: Get terminal ID       AR: طلب رقم الجهاز
-//     "09;0!"  / "09;0;1!"              EN: Reconciliation        AR: التسوية
-//     "0A!"                             EN: Get merchant details  AR: طلب بيانات التاجر
-//     "0B!"                             EN: Repeat last trxn      AR: إعادة آخر عملية
-//     "<amount>;0;1!"                   EN: Purchase              AR: شراء
-//     "<amount>;<origRRN>;<DDMMYYYY>;1;1!"  EN: Refund            AR: استرجاع
-//
-//     EN: <amount> is in halalas, the smallest currency unit: "4371" = 43.71 SAR, "50" = 0.50 SAR.
-//         <origRRN> is the 12-digit RRN of the original purchase. <DDMMYYYY> is the original date.
-//         The meaning of the trailing "0" / "1" flags is NOT stated in this code.
+//     EN: <amount> is in halalas, the smallest currency unit: 43.71 SAR on the form -> "4371".
+//         <RRN> is the 12-digit RRN of the original purchase. <DDMMYYYY> is its (Gregorian) date.
+//         The meaning of the trailing "0;1" / "1;1" flags is NOT stated in this code.
 //         Confirm them in the mada ECR integration document from the vendor.
-//     AR: <amount> بالهللة (أصغر وحدة للعملة): "4371" = 43.71 ريال، "50" = 0.50 ريال.
-//         <origRRN> هو الرقم المرجعي (12 رقماً) لعملية الشراء الأصلية، و <DDMMYYYY> تاريخها.
-//         معنى الأعلام الأخيرة "0" / "1" غير موضّح في هذا الكود.
+//     AR: <amount> بالهللة (أصغر وحدة للعملة): 43.71 ريال في النافذة -> "4371".
+//         <RRN> هو الرقم المرجعي (12 رقماً) لعملية الشراء الأصلية، و <DDMMYYYY> تاريخها (الميلادي).
+//         معنى العلامات الأخيرة "0;1" / "1;1" غير موضّح في هذا الكود.
 //         يجب التأكد منها من وثيقة ربط ECR الخاصة بمدى من المورّد.
 //
 //   Output (response) buffers / مخازن الاستجابة (المخرجات):
@@ -107,50 +91,52 @@
 //     outRespLen  [1]   EN: Length of outResp                    AR: طول outResp
 //
 //   Return value / القيمة المُعادة:
-//     EN: Every function returns a status code as IntPtr. The sample shows it in a MessageBox.
-//         The numeric meanings are defined by the vendor. The DLL log (bin\Debug\ECRLOG_*.txt)
-//         also prints text such as "API_TERM_BUSY" or "communication timeout".
-//     AR: كل دالة تُعيد رمز حالة من النوع IntPtr، والمثال يعرضه في رسالة MessageBox.
-//         معاني الأرقام يحددها المورّد. سجل المكتبة (bin\Debug\ECRLOG_*.txt) يطبع أيضاً نصوصاً
-//         مثل "API_TERM_BUSY" (الجهاز مشغول) أو "communication timeout" (انتهت مهلة الاتصال).
+//     EN: Every function returns a status code as IntPtr. It is shown in a MessageBox and in the log.
+//         The numeric meanings are defined by the vendor (with no terminal attached the DLL returned -3).
+//         The DLL log (bin\Debug\ECRLOG_*.txt) also prints text such as "API_TERM_BUSY".
+//     AR: كل دالة تُعيد رمز حالة من النوع IntPtr، ويُعرض في رسالة وفي السجل.
+//         معاني الأرقام يحددها المورّد (بدون جهاز متصل أعادت المكتبة -3).
+//         سجل المكتبة (bin\Debug\ECRLOG_*.txt) يطبع أيضاً نصوصاً مثل "API_TERM_BUSY" (الجهاز مشغول).
 //
 // -------------------------------------------------------------------------------------
-// EN: KNOWN ISSUES in this sample (documented only, not changed)
-// AR: ملاحظات ومشاكل معروفة في هذا المثال (موثّقة فقط، لم يتم تعديلها)
-//   1. EN: COM port numbers are hard-coded and differ per button (5, 9, 15, 17). Only button6
-//          reads "PaymentMachinePort" from app.config.
-//      AR: أرقام منافذ COM مكتوبة مباشرة وتختلف بين الأزرار (5، 9، 15، 17). فقط button6 يقرأ
-//          "PaymentMachinePort" من ملف app.config.
-//   2. EN: TCP IP addresses are hard-coded and differ per button.
-//      AR: عناوين IP مكتوبة مباشرة وتختلف بين الأزرار.
-//   3. EN: Encoding.UTF8.GetString(buffer) keeps the trailing '\0' bytes. Use .TrimEnd('\0') for clean text.
-//      AR: Encoding.UTF8.GetString(buffer) يُبقي بايتات '\0' في النهاية. استخدم .TrimEnd('\0') لنص نظيف.
-//   4. EN: Calls are synchronous on the UI thread, so the window freezes until the terminal answers.
+// EN: NOTES
+// AR: ملاحظات
+//   1. EN: Calls are synchronous on the UI thread, so the window freezes until the terminal answers.
 //      AR: الاستدعاءات متزامنة على خيط الواجهة، لذلك تتجمّد النافذة حتى يرد الجهاز.
-//   5. EN: Repeat functions load madaapi_v1_8.dll, all others load madaapi_v1_9.dll. Both DLLs
+//   2. EN: Repeat functions load madaapi_v1_8.dll, all others load madaapi_v1_9.dll. Both DLLs
 //          must sit next to CDLL.exe (bin\Debug).
 //      AR: دوال "إعادة آخر عملية" تحمّل madaapi_v1_8.dll وبقية الدوال تحمّل madaapi_v1_9.dll.
 //          يجب أن تكون المكتبتان بجانب CDLL.exe (داخل bin\Debug).
+//   3. EN: Changes from the original sample: one shared COM port / IP for all buttons (they used
+//          5, 9, 15, 17 and four IPs), Refund (TCP) now ends with "!" like Refund (USB), and
+//          results are printed without the trailing '\0' characters.
+//      AR: تغييرات عن المثال الأصلي: منفذ COM وعنوان IP واحد لكل الأزرار (كانت تستخدم 5، 9، 15، 17
+//          وأربعة عناوين)، الاسترجاع عبر TCP ينتهي الآن بـ "!" مثل USB، والنتائج تُطبع بدون أحرف '\0'.
 // =====================================================================================
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;             // EN: ConfigurationManager, reads/writes app.config   AR: لقراءة وكتابة إعدادات app.config
 using System.Data;
 using System.Drawing;
+using System.Globalization;             // EN: InvariantCulture for numbers and dates   AR: لتنسيق الأرقام والتواريخ
+using System.IO;
+using System.Net;                       // EN: IPAddress validation   AR: للتحقق من عنوان IP
+using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.InteropServices;   // EN: DllImport / MarshalAs for calling the native DLL   AR: لاستدعاء المكتبة الأصلية
 using System.Text;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;   // EN: DllImport / MarshalAs for calling the native DLL   AR: لاستدعاء المكتبة الأصلية
-using System.Reflection;
-using System.IO;
-using System.Configuration;             // EN: ConfigurationManager, reads app.config   AR: لقراءة إعدادات app.config
 
 
 namespace CDLL
 {
     /// <summary>
-    /// EN: Main (and only) window. Declares the native mada API functions and one click handler per operation.
-    /// AR: النافذة الرئيسية (والوحيدة). تعرّف دوال مكتبة مدى الأصلية ودالة نقر لكل عملية.
+    /// EN: Main window for the REAL terminal. Declares the native mada API functions, one click handler
+    ///     per operation, and the settings/transaction inputs that every handler reads.
+    /// AR: النافذة الرئيسية للجهاز الفعلي. تعرّف دوال مكتبة مدى الأصلية، ودالة نقر لكل عملية،
+    ///     وخانات الإعدادات وقيم العملية التي تقرأ منها كل الدوال.
     /// </summary>
     public partial class Form1 : Form
     {
@@ -177,19 +163,19 @@ namespace CDLL
         /// <summary>
         /// EN: Sends a financial transaction (Purchase trnxType=0, Refund trnxType=2) over USB/COM
         ///     and fills the output buffers with the card/transaction result.
-        ///     Used by: button2_Click (Purchase_USB), button8_Click (Refund_USB).
+        ///     Used by: btnPurchaseUsb_Click, btnRefundUsb_Click.
         /// AR: يرسل عملية مالية (شراء trnxType=0، استرجاع trnxType=2) عبر USB/COM
         ///     ويملأ مخازن المخرجات بنتيجة البطاقة والعملية.
-        ///     مستخدمة في: button2_Click (Purchase_USB) و button8_Click (Refund_USB).
+        ///     مستخدمة في: btnPurchaseUsb_Click و btnRefundUsb_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_RequestCOMTrxn(int port, int Rate, int x, int y, int z, byte[] inOutBuff, byte[] intval, int trnxType, byte[] panNo, byte[] purAmount, byte[] stanNo, byte[] dataTime, byte[] expDate, byte[] trxRrn, byte[] authCode, byte[] rspCode, byte[] terminalId, byte[] schemeId, byte[] merchantId, byte[] addtlAmount, byte[] ecrrefno, byte[] version, [MarshalAs(UnmanagedType.LPWStr)]StringBuilder outResp, byte[] outRespLen);
 
         /// <summary>
         /// EN: Same as api_RequestCOMTrxn but over TCP/IP (ip + port instead of COM settings).
-        ///     Used by: button3_Click_1 (Purchase_TCP), button7_Click (Refund_TCP).
+        ///     Used by: btnPurchaseTcp_Click, btnRefundTcp_Click.
         /// AR: مثل api_RequestCOMTrxn لكن عبر شبكة TCP/IP (عنوان IP ومنفذ بدلاً من إعدادات COM).
-        ///     مستخدمة في: button3_Click_1 (Purchase_TCP) و button7_Click (Refund_TCP).
+        ///     مستخدمة في: btnPurchaseTcp_Click و btnRefundTcp_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_RequestTCPIPTrxn(byte[] ip, byte[] port, byte[] inOutBuff, byte[] intval, int trnxType, byte[] panNo, byte[] purAmount, byte[] stanNo, byte[] dataTime, byte[] expDate, byte[] trxRrn, byte[] authCode, byte[] rspCode, byte[] terminalId, byte[] schemeId, byte[] merchantId, byte[] addtlAmount, byte[] ecrrefno, byte[] version, [MarshalAs(UnmanagedType.LPWStr)]StringBuilder outResp, byte[] outRespLen);
@@ -197,19 +183,19 @@ namespace CDLL
         /// <summary>
         /// EN: Reads the merchant name and address stored in the terminal, in English (byte[])
         ///     and Arabic (StringBuilder, Unicode). Request string: "0A!". USB/COM only.
-        ///     Used by: button4_Click (Get Merchant).
+        ///     Used by: btnMerchant_Click.
         /// AR: يقرأ اسم التاجر وعنوانه المخزّنين في الجهاز بالإنجليزية (byte[]) وبالعربية
         ///     (StringBuilder بترميز يونيكود). نص الطلب: "0A!". عبر USB/COM فقط.
-        ///     مستخدمة في: button4_Click (Get Merchant).
+        ///     مستخدمة في: btnMerchant_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_GetMerchantDetails(int port, int Rate, int x, int y, int z, byte[] inOutBuff, byte[] intval, byte[] merchantNameEng, [MarshalAs(UnmanagedType.LPWStr)]StringBuilder merchantNameArb, byte[] merchantAddEng1, [MarshalAs(UnmanagedType.LPWStr)]StringBuilder merchantAddArb1, byte[] merchantAddopt1, [MarshalAs(UnmanagedType.LPWStr)]StringBuilder merchantAddopt2);
 
         /// <summary>
         /// EN: Reads the Terminal ID over TCP/IP. Request string: "07!".
-        ///     Used by: button5_Click (Terminal ID).
+        ///     Used by: btnTerminalId_Click.
         /// AR: يقرأ رقم الجهاز (Terminal ID) عبر TCP/IP. نص الطلب: "07!".
-        ///     مستخدمة في: button5_Click (Terminal ID).
+        ///     مستخدمة في: btnTerminalId_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_TCPIPGetTerminalID(byte[] ip, byte[] port, byte[] inOutBuff, byte[] intval, byte[] terminalId);
@@ -217,19 +203,19 @@ namespace CDLL
         /// <summary>
         /// EN: Checks that the terminal is connected and ready (USB/COM). Request string: "04!".
         ///     Only the return code tells you the result.
-        ///     Used by: button6_Click (Check status).
+        ///     Used by: btnStatusUsb_Click.
         /// AR: يتحقق من أن الجهاز متصل وجاهز (USB/COM). نص الطلب: "04!".
         ///     النتيجة تُعرف من رمز الإرجاع فقط.
-        ///     مستخدمة في: button6_Click (Check status).
+        ///     مستخدمة في: btnStatusUsb_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_CheckStatus(int port, int Rate, int x, int y, int z, byte[] inOutBuff, byte[] intval);
 
         /// <summary>
         /// EN: Same as api_CheckStatus but over TCP/IP.
-        ///     Used by: CheckStatus_button_Click (TCP_Checkstatus).
+        ///     Used by: btnStatusTcp_Click.
         /// AR: مثل api_CheckStatus لكن عبر TCP/IP.
-        ///     مستخدمة في: CheckStatus_button_Click (TCP_Checkstatus).
+        ///     مستخدمة في: btnStatusTcp_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_TCPIPCheckStatus(byte[] ip, byte[] port, byte[] inOutBuff, byte[] intval);
@@ -238,20 +224,20 @@ namespace CDLL
         /// EN: Reconciliation (end-of-day settlement) over TCP/IP, WITHOUT printing a receipt ("WORcpt").
         ///     Returns terminal totals vs host (bank) totals so you can compare them.
         ///     NOTE: the request length is passed by reference (ref int inReqlen), not as a 1-byte array.
-        ///     Used by: Recn_button_Click (Recon_TCP).
+        ///     Used by: btnReconTcp_Click.
         /// AR: التسوية (إقفال نهاية اليوم) عبر TCP/IP بدون طباعة إيصال ("WORcpt" = Without Receipt).
         ///     تُعيد مجاميع الجهاز ومجاميع البنك (المضيف) للمقارنة بينهما.
         ///     ملاحظة: طول الطلب يُمرَّر بالمرجع (ref int inReqlen) وليس كمصفوفة ببايت واحد.
-        ///     مستخدمة في: Recn_button_Click (Recon_TCP).
+        ///     مستخدمة في: btnReconTcp_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_RequestReconTCPIPWORcpt(byte[] ip, byte[] port, byte[] inOutBuff, ref int inReqlen, byte[] rspCode, byte[] terminalTotal, byte[] hostTotal, byte[] stanNo, byte[] dataTime, byte[] terminalId, byte[] merchantId);
 
         /// <summary>
         /// EN: Reconciliation (end-of-day settlement) over USB/COM, without printing a receipt.
-        ///     Used by: Recon_TCP_Click (button labelled "Recon_USB").
+        ///     Used by: btnReconUsb_Click.
         /// AR: التسوية (إقفال نهاية اليوم) عبر USB/COM بدون طباعة إيصال.
-        ///     مستخدمة في: Recon_TCP_Click (الزر المكتوب عليه "Recon_USB").
+        ///     مستخدمة في: btnReconUsb_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_9.dll", CallingConvention = CallingConvention.StdCall)]
 
@@ -262,21 +248,21 @@ namespace CDLL
         ///     Use it when the ECR lost the response (timeout, crash) and you must know whether
         ///     the customer was charged before retrying. Request string: "0B!".
         ///     Loaded from the OLDER madaapi_v1_8.dll. Has an extra Cardscheme output buffer.
-        ///     Used by: button9_Click (Repeat_TCP).
+        ///     Used by: btnRepeatTcp_Click.
         /// AR: إعادة: يطلب من الجهاز مرة أخرى نتيجة آخر عملية عبر TCP/IP.
         ///     تُستخدم عندما يفقد نظام نقاط البيع الاستجابة (انتهاء المهلة أو تعطّل البرنامج) ويجب
         ///     معرفة هل تم الخصم من العميل قبل إعادة المحاولة. نص الطلب: "0B!".
         ///     تُحمَّل من المكتبة الأقدم madaapi_v1_8.dll، وفيها مخزن إضافي Cardscheme لنوع البطاقة.
-        ///     مستخدمة في: button9_Click (Repeat_TCP).
+        ///     مستخدمة في: btnRepeatTcp_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_8.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_RequestTCPIPRepeat(byte[] ip, byte[] port, byte[] inOutBuff, byte[] intval,byte[] panNo, byte[] purAmount, byte[] stanNo, byte[] dataTime, byte[] expDate, byte[] trxRrn, byte[] authCode, byte[] rspCode, byte[] terminalId, byte[] schemeId, byte[] merchantId, byte[] addtlAmount, byte[] ecrrefno, byte[] version, byte[] Cardscheme, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder outResp, byte[] outRespLen);
 
         /// <summary>
         /// EN: Repeat last transaction over USB/COM (see api_RequestTCPIPRepeat). From madaapi_v1_8.dll.
-        ///     Used by: button10_Click (Repeat_USB).
+        ///     Used by: btnRepeatUsb_Click.
         /// AR: إعادة آخر عملية عبر USB/COM (راجع api_RequestTCPIPRepeat). من المكتبة madaapi_v1_8.dll.
-        ///     مستخدمة في: button10_Click (Repeat_USB).
+        ///     مستخدمة في: btnRepeatUsb_Click.
         /// </summary>
         [DllImport(@"madaapi_v1_8.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr api_RequestCOMRepeat(int port, int Rate, int x, int y, int z, byte[] inOutBuff, byte[] intval,  byte[] panNo, byte[] purAmount, byte[] stanNo, byte[] dataTime, byte[] expDate, byte[] trxRrn, byte[] authCode, byte[] rspCode, byte[] terminalId, byte[] schemeId, byte[] merchantId, byte[] addtlAmount, byte[] ecrrefno, byte[] version, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder outResp, byte[] outRespLen);
@@ -291,29 +277,81 @@ namespace CDLL
         }
 
         /// <summary>
-        /// EN: Runs when the window opens. Empty: nothing is initialised here.
-        /// AR: تُنفَّذ عند فتح النافذة. فارغة: لا يتم تهيئة أي شيء هنا.
+        /// EN: Runs when the window opens: fills every input with its default from app.config
+        ///     (or the built-in default below when the key is missing or invalid).
+        /// AR: تُنفَّذ عند فتح النافذة: تملأ كل خانة بقيمتها الافتراضية من app.config
+        ///     (أو القيمة المدمجة أدناه عندما يكون المفتاح مفقوداً أو غير صالح).
         /// </summary>
         private void Form1_Load(object sender, EventArgs e)
         {
+            SetNumber(numComPort, "PaymentMachinePort", 5);
+            SetNumber(numBaudRate, "BaudRate", 38400);
+            SetNumber(numParity, "Parity", 0);
+            SetNumber(numDataBits, "DataBits", 8);
+            SetNumber(numStopBits, "StopBits", 0);
+            txtIp.Text = Setting("TerminalIp", "192.168.116.166");
+            txtTcpPort.Text = Setting("TerminalTcpPort", "6100");
 
+            SetNumber(numPurchaseAmount, "PurchaseAmount", 43.71m);
+            SetNumber(numRefundAmount, "RefundAmount", 0.50m);
+            txtOriginalRrn.Text = Setting("OriginalRrn", "434615455456");
+            DateTime originalDate;
+            dtpOriginalDate.Value = DateTime.TryParseExact(Setting("OriginalDate", ""), "yyyy-MM-dd",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out originalDate)
+                ? originalDate
+                : new DateTime(2024, 12, 11);
         }
 
+        // =============================================================================
+        // EN: STATUS / الحالة
+        // =============================================================================
 
         /// <summary>
-        /// EN: [Purchase_USB] PURCHASE of 43.71 SAR over USB/COM port 5.
-        ///     Shows the return code, then PAN, card scheme and RRN in the text box.
-        /// AR: [Purchase_USB] عملية شراء بمبلغ 43.71 ريال عبر USB/COM على المنفذ 5.
-        ///     تعرض رمز الإرجاع، ثم رقم البطاقة ونوعها والرقم المرجعي في مربع النص.
+        /// EN: [Check status (USB)] Checks the terminal over the COM port. Only the return code tells the result.
+        /// AR: [فحص الحالة (USB)] يفحص الجهاز عبر منفذ COM. النتيجة تُعرف من رمز الإرجاع فقط.
         /// </summary>
-        private void button2_Click(object sender, EventArgs e)
+        private void btnStatusUsb_Click(object sender, EventArgs e)
         {
-            string TextString;
+            string TextString = "04!";   // EN: check status command   AR: أمر فحص الحالة
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
+
+            LogStart("Check status (USB) / فحص الحالة", ComTarget(), TextString);
+            var Result = api_CheckStatus(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval);
+            LogResult(Result);
+        }
+
+        /// <summary>
+        /// EN: [Check status (TCP)] Checks the terminal over the network.
+        /// AR: [فحص الحالة (TCP)] يفحص الجهاز عبر الشبكة.
+        /// </summary>
+        private void btnStatusTcp_Click(object sender, EventArgs e)
+        {
+            byte[] b_ip, b_port;
+            if (!TryGetTcpAddress(out b_ip, out b_port))
+                return;
+
+            string TextString = "04!";
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
+
+            LogStart("Check status (TCP) / فحص الحالة", TcpTarget(), TextString);
+            var Result = api_TCPIPCheckStatus(b_ip, b_port, inOutBuff, intval);
+            LogResult(Result);
+        }
+
+        // =============================================================================
+        // EN: PURCHASE / الشراء
+        // =============================================================================
+
+        /// <summary>
+        /// EN: [Purchase (USB)] Purchase of the "Purchase amount" over the COM port. Blocks until the card is used.
+        /// AR: [شراء (USB)] عملية شراء بقيمة "مبلغ الشراء" عبر منفذ COM. ينتظر حتى تُستخدم البطاقة.
+        /// </summary>
+        private void btnPurchaseUsb_Click(object sender, EventArgs e)
+        {
             // EN: Output buffers: the DLL fills them. Size = max length + 1 (null terminator).
-            //     See the table at the top of this file for each field's meaning.
             // AR: مخازن المخرجات: المكتبة تملؤها. الحجم = أقصى طول + 1 (حرف النهاية null).
-            //     راجع الجدول أعلى الملف لمعنى كل حقل.
-            byte[] intval = new byte[1];        // EN: request length (input)     AR: طول الطلب (مدخل)
             byte[] panNo = new byte[23];        // EN: card number                AR: رقم البطاقة
             byte[] purAmount = new byte[13];    // EN: amount                     AR: المبلغ
             byte[] stanNo = new byte[7];        // EN: STAN trace number          AR: رقم التتبع
@@ -331,51 +369,28 @@ namespace CDLL
             byte[] outRespLen = new byte[1];    // EN: raw response length        AR: طول الاستجابة الخام
             StringBuilder outResp = new StringBuilder(15000);   // EN: raw full response   AR: الاستجابة الكاملة الخام
 
-            // EN: 0 = Purchase.   AR: 0 = شراء.
-            int trnxType = 0;
-            // EN: "<amount in halalas>;0;1!" -> 4371 = 43.71 SAR.   AR: "<المبلغ بالهللة>;0;1!" -> 4371 = 43.71 ريال.
-            TextString = "4371;0;1!";
-            // EN: Convert request to ASCII bytes and store its length in intval[0].
-            // AR: تحويل الطلب إلى بايتات ASCII وتخزين طوله في intval[0].
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
+            int trnxType = 0;                   // EN: 0 = Purchase   AR: 0 = شراء
+            string TextString = PurchaseRequest();
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
-            // EN: Previous call on COM9, kept for reference.   AR: استدعاء سابق على COM9، محفوظ للرجوع إليه.
-            //var Result = api_RequestCOMTrxn(9, 38400, 0, 8, 0, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            // EN: COM5, 38400 baud, no parity, 8 data bits, 1 stop bit. Blocks until the customer
-            //     taps/inserts the card and the terminal answers.
-            // AR: المنفذ COM5، سرعة 38400، بدون Parity، 8 بتات بيانات، بت توقف واحد. ينتظر حتى
-            //     يمرّر العميل بطاقته ويرد الجهاز.
-            var Result = api_RequestCOMTrxn(5, 38400, 0, 8, 0, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            // EN: Show the DLL status code.   AR: عرض رمز الحالة من المكتبة.
-            MessageBox.Show(Result.ToString());
-
-            // EN: Decode the filled buffers to text and display them.
-            // AR: تحويل المخازن المملوءة إلى نص وعرضها.
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("PAN NO: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(schemeId);
-            Trans_richTextBox.AppendText("\nCARD ID: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(trxRrn);
-            Trans_richTextBox.AppendText("\nTrxRrn : " + result);
-
+            LogStart("Purchase (USB) / شراء", ComTarget(), TextString);
+            var Result = api_RequestCOMTrxn(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
         }
 
         /// <summary>
-        /// EN: [Purchase_TCP] PURCHASE of 0.50 SAR over TCP/IP to 192.168.116.166:6100.
-        ///     Shows the return code, then PAN and ECR reference number.
-        /// AR: [Purchase_TCP] عملية شراء بمبلغ 0.50 ريال عبر TCP/IP إلى 192.168.116.166:6100.
-        ///     تعرض رمز الإرجاع، ثم رقم البطاقة والرقم المرجعي لنقاط البيع.
+        /// EN: [Purchase (TCP)] Purchase of the "Purchase amount" over the network.
+        /// AR: [شراء (TCP)] عملية شراء بقيمة "مبلغ الشراء" عبر الشبكة.
         /// </summary>
-        private void button3_Click_1(object sender, EventArgs e)
+        private void btnPurchaseTcp_Click(object sender, EventArgs e)
         {
-            string TextString;
-            string ip;
-            string port;
-            // EN: Output buffers (same layout as button2_Click).   AR: مخازن المخرجات (نفس ترتيب button2_Click).
-            byte[] intval = new byte[1];
+            byte[] b_ip, b_port;
+            if (!TryGetTcpAddress(out b_ip, out b_port))
+                return;
+
+            // EN: Output buffers (same layout as btnPurchaseUsb_Click).   AR: مخازن المخرجات (نفس ترتيب btnPurchaseUsb_Click).
             byte[] panNo = new byte[23];
             byte[] purAmount = new byte[13];
             byte[] stanNo = new byte[7];
@@ -393,153 +408,32 @@ namespace CDLL
             byte[] outRespLen = new byte[1];
             StringBuilder outResp = new StringBuilder(15000);
 
-            // EN: 0 = Purchase, amount 50 halalas = 0.50 SAR.   AR: 0 = شراء، المبلغ 50 هللة = 0.50 ريال.
-            int trnxType = 0;
-            TextString = "50;0;1!";
-            // EN: Terminal network address. Change to your terminal's IP.
-            // AR: عنوان الجهاز على الشبكة. غيّره إلى عنوان IP الخاص بجهازك.
-            ip = "192.168.116.166";
-            port = "6100";
-            // EN: The DLL expects ASCII bytes for request, IP and port.
-            // AR: المكتبة تتوقع بايتات ASCII للطلب وعنوان IP والمنفذ.
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
+            int trnxType = 0;                   // EN: 0 = Purchase   AR: 0 = شراء
+            string TextString = PurchaseRequest();
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
+            LogStart("Purchase (TCP) / شراء", TcpTarget(), TextString);
             var Result = api_RequestTCPIPTrxn(b_ip, b_port, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            MessageBox.Show(Result.ToString());
-
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("PAN NO: " + result);
-
-            // EN: No "\n" before this label, so it prints on the same line as the PAN.
-            // AR: لا يوجد "\n" قبل هذا النص، لذلك يُطبع على نفس سطر رقم البطاقة.
-            result = System.Text.Encoding.UTF8.GetString(ecrrefno);
-            Trans_richTextBox.AppendText("ECR REF NO: " + result);
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
         }
 
-        /// <summary>
-        /// EN: [Get Merchant] Reads merchant name/address (English + Arabic) over USB/COM port 15.
-        /// AR: [Get Merchant] يقرأ اسم التاجر وعنوانه (إنجليزي + عربي) عبر USB/COM على المنفذ 15.
-        /// </summary>
-        private void button4_Click(object sender, EventArgs e)
-        {
-            string TextString;
-            byte[] intval = new byte[1];
-            // EN: English fields come back as single-byte text in byte[] buffers.
-            // AR: الحقول الإنجليزية تعود كنص أحادي البايت داخل مصفوفات byte[].
-            byte[] merchantNameEng = new byte[500];
-            byte[] merchantAddEng1 = new byte[500];
-            byte[] merchantAddopt1 = new byte[500];
-            // EN: Arabic fields need Unicode, so the DLL writes them into wide-char StringBuilders.
-            // AR: الحقول العربية تحتاج يونيكود، لذلك تكتبها المكتبة داخل StringBuilder بأحرف عريضة.
-            StringBuilder merchantNameArb = new StringBuilder(500);
-            StringBuilder merchantAddArb1 = new StringBuilder(500);
-            StringBuilder merchantAddopt2 = new StringBuilder(500);
-
-            // EN: Not used by api_GetMerchantDetails.   AR: غير مستخدم في api_GetMerchantDetails.
-            int trnxType = 0;
-            // EN: "0A!" = get merchant details command.   AR: "0A!" = أمر طلب بيانات التاجر.
-            TextString = "0A!";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
-
-            // EN: COM15, 38400 8N1.   AR: المنفذ COM15، الإعدادات 38400 8N1.
-            var Result = api_GetMerchantDetails(15, 38400, 0, 8, 0, inOutBuff, intval,merchantNameEng, merchantNameArb, merchantAddEng1, merchantAddArb1, merchantAddopt1, merchantAddopt2);
-            MessageBox.Show(Result.ToString());
-
-            string result = System.Text.Encoding.UTF8.GetString(merchantNameEng);
-            Trans_richTextBox.AppendText("MerchantNameEng: " + result);
-
-            // EN: StringBuilder already holds .NET text, so just call ToString().
-            // AR: StringBuilder يحتوي نص ‎.NET جاهز، لذلك يكفي استدعاء ToString().
-            result = merchantNameArb.ToString();
-            Trans_richTextBox.AppendText("\nMerchantNameArb: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(merchantAddEng1);
-            Trans_richTextBox.AppendText("\nMerchantAddEng1: " + result);
-
-            result = merchantAddArb1.ToString();
-            Trans_richTextBox.AppendText("\nMerchantAddArb1: " + result);
-        }
+        // =============================================================================
+        // EN: REFUND / الاسترجاع
+        // =============================================================================
 
         /// <summary>
-        /// EN: [Terminal ID] Reads the Terminal ID over TCP/IP from 192.168.208.157:6100.
-        /// AR: [Terminal ID] يقرأ رقم الجهاز عبر TCP/IP من 192.168.208.157:6100.
+        /// EN: [Refund (USB)] Refund of the "Refund amount" for the "Original RRN" / "Original date", over the COM port.
+        /// AR: [استرجاع (USB)] استرجاع "مبلغ الاسترجاع" للعملية ذات "الرقم المرجعي" و"التاريخ" الأصليين، عبر منفذ COM.
         /// </summary>
-        private void button5_Click(object sender, EventArgs e)
+        private void btnRefundUsb_Click(object sender, EventArgs e)
         {
             string TextString;
-            string ip;
-            string port;
-            byte[] intval = new byte[1];
-            // EN: Output: 16-char Terminal ID + null.   AR: المخرج: رقم الجهاز 16 حرفاً + حرف النهاية.
-            byte[] terminalId = new byte[17];
+            if (!TryBuildRefundRequest(out TextString))
+                return;
 
-            // EN: Not used by this call.   AR: غير مستخدم في هذا الاستدعاء.
-            int trnxType = 0;
-            // EN: "07!" = get terminal ID command.   AR: "07!" = أمر طلب رقم الجهاز.
-            TextString = "07!";
-            ip = "192.168.208.157";
-            port = "6100";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
-
-            var Result = api_TCPIPGetTerminalID(b_ip, b_port, inOutBuff, intval, terminalId);
-            MessageBox.Show(Result.ToString());
-
-            string result = System.Text.Encoding.UTF8.GetString(terminalId);
-            Trans_richTextBox.AppendText("Terminal ID: " + result);
-        }
-
-        /// <summary>
-        /// EN: [Check status] Checks the terminal over USB/COM. The ONLY handler that reads the
-        ///     COM port from app.config ("PaymentMachinePort"), so you can change the port without recompiling.
-        /// AR: [Check status] يفحص حالة الجهاز عبر USB/COM. هذه الدالة الوحيدة التي تقرأ رقم المنفذ
-        ///     من app.config ("PaymentMachinePort")، فيمكن تغيير المنفذ بدون إعادة البناء.
-        /// </summary>
-        private void button6_Click(object sender, EventArgs e)
-        {
-            string TextString;
-            // EN: ip, port, terminalId, trnxType are declared but unused here.
-            // AR: المتغيرات ip و port و terminalId و trnxType معرّفة لكنها غير مستخدمة هنا.
-            string ip;
-            string port;
-            byte[] intval = new byte[1];
-            byte[] terminalId = new byte[17];
-
-            int trnxType = 0;
-            // EN: "04!" = check status command.   AR: "04!" = أمر فحص الحالة.
-            TextString = "04!";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
-            // EN: Read COM port number from app.config -> <appSettings><add key="PaymentMachinePort" .../>.
-            //     Throws FormatException if the value is missing or not a number.
-            // AR: قراءة رقم منفذ COM من app.config -> <appSettings><add key="PaymentMachinePort" .../>.
-            //     يرمي استثناء FormatException إذا كانت القيمة مفقودة أو ليست رقماً.
-            int portNumber = Convert.ToInt32(ConfigurationManager.AppSettings["PaymentMachinePort"]);
-            var Result = api_CheckStatus(portNumber, 38400, 0, 8, 0, inOutBuff, intval);
-            // EN: Old hard-coded COM15 call.   AR: الاستدعاء القديم بمنفذ COM15 الثابت.
-            //var Result = api_CheckStatus(15, 38400, 0, 8, 0, inOutBuff, intval);
-            MessageBox.Show(Result.ToString());
-        }
-
-        /// <summary>
-        /// EN: [Refund_TCP] REFUND of 1.00 SAR over TCP/IP to 192.168.241.157:6100.
-        ///     Needs the original purchase's RRN and date.
-        /// AR: [Refund_TCP] عملية استرجاع بمبلغ 1.00 ريال عبر TCP/IP إلى 192.168.241.157:6100.
-        ///     تحتاج الرقم المرجعي (RRN) وتاريخ عملية الشراء الأصلية.
-        /// </summary>
-        private void button7_Click(object sender, EventArgs e)
-        {
-            string TextString;
-            string ip;
-            string port;
-            // EN: Output buffers (same layout as button2_Click).   AR: مخازن المخرجات (نفس ترتيب button2_Click).
-            byte[] intval = new byte[1];
+            // EN: Output buffers (same layout as btnPurchaseUsb_Click).   AR: مخازن المخرجات (نفس ترتيب btnPurchaseUsb_Click).
             byte[] panNo = new byte[23];
             byte[] purAmount = new byte[13];
             byte[] stanNo = new byte[7];
@@ -557,178 +451,68 @@ namespace CDLL
             byte[] outRespLen = new byte[1];
             StringBuilder outResp = new StringBuilder(15000);
 
-            // EN: 2 = Refund.   AR: 2 = استرجاع.
-            int trnxType = 2;
-            // EN: "<amount>;<original RRN>;<original date DDMMYYYY>;1;1"
-            //     = 1.00 SAR, RRN 123456781234, date 13/11/2018 (test values).
-            //     NOTE: no trailing "!" here, unlike Refund_USB. Check the vendor spec.
-            // AR: "<المبلغ>;<الرقم المرجعي الأصلي>;<التاريخ الأصلي DDMMYYYY>;1;1"
-            //     = 1.00 ريال، الرقم المرجعي 123456781234، التاريخ 13/11/2018 (قيم تجريبية).
-            //     ملاحظة: لا يوجد "!" في النهاية هنا بخلاف Refund_USB. راجع وثيقة المورّد.
-            TextString = "100;123456781234;13112018;1;1";
-            ip = "192.168.241.157";
-            port = "6100";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
+            int trnxType = 2;                   // EN: 2 = Refund   AR: 2 = استرجاع
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
+            LogStart("Refund (USB) / استرجاع", ComTarget(), TextString);
+            var Result = api_RequestCOMTrxn(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
+        }
+
+        /// <summary>
+        /// EN: [Refund (TCP)] Same as Refund (USB) but over the network.
+        /// AR: [استرجاع (TCP)] مثل الاسترجاع عبر USB لكن عبر الشبكة.
+        /// </summary>
+        private void btnRefundTcp_Click(object sender, EventArgs e)
+        {
+            byte[] b_ip, b_port;
+            string TextString;
+            if (!TryGetTcpAddress(out b_ip, out b_port) || !TryBuildRefundRequest(out TextString))
+                return;
+
+            // EN: Output buffers (same layout as btnPurchaseUsb_Click).   AR: مخازن المخرجات (نفس ترتيب btnPurchaseUsb_Click).
+            byte[] panNo = new byte[23];
+            byte[] purAmount = new byte[13];
+            byte[] stanNo = new byte[7];
+            byte[] dataTime = new byte[13];
+            byte[] expDate = new byte[5];
+            byte[] trxRrn = new byte[13];
+            byte[] authCode = new byte[7];
+            byte[] rspCode = new byte[4];
+            byte[] terminalId = new byte[17];
+            byte[] schemeId = new byte[3];
+            byte[] merchantId = new byte[16];
+            byte[] addtlAmount = new byte[13];
+            byte[] ecrrefno = new byte[17];
+            byte[] version = new byte[10];
+            byte[] outRespLen = new byte[1];
+            StringBuilder outResp = new StringBuilder(15000);
+
+            int trnxType = 2;                   // EN: 2 = Refund   AR: 2 = استرجاع
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
+
+            LogStart("Refund (TCP) / استرجاع", TcpTarget(), TextString);
             var Result = api_RequestTCPIPTrxn(b_ip, b_port, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            MessageBox.Show(Result.ToString());
-
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("PAN NO: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(ecrrefno);
-            Trans_richTextBox.AppendText("ECR REF NO: " + result);
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
         }
 
-        /// <summary>
-        /// EN: [TCP_Checkstatus] Checks the terminal over TCP/IP at 192.168.208.157:6100.
-        /// AR: [TCP_Checkstatus] يفحص حالة الجهاز عبر TCP/IP على 192.168.208.157:6100.
-        /// </summary>
-        private void CheckStatus_button_Click(object sender, EventArgs e)
-        {
-            string TextString;
-            string ip;
-            string port;
-
-            ip = "192.168.208.157";
-            port = "6100";
-            byte[] intval = new byte[1];
-
-            // EN: Not used by this call.   AR: غير مستخدم في هذا الاستدعاء.
-            int trnxType = 0;
-            // EN: "04!" = check status command.   AR: "04!" = أمر فحص الحالة.
-            TextString = "04!";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
-
-            var Result = api_TCPIPCheckStatus(b_ip, b_port, inOutBuff, intval);
-            MessageBox.Show(Result.ToString());
-        }
+        // =============================================================================
+        // EN: REPEAT LAST TRANSACTION / إعادة آخر عملية
+        // =============================================================================
 
         /// <summary>
-        /// EN: [Recon_TCP] RECONCILIATION (end-of-day settlement) over TCP/IP to 192.168.116.166:6100.
-        ///     Displays terminal totals and host (bank) totals. They should match.
-        ///     The return code is NOT shown in a MessageBox here.
-        /// AR: [Recon_TCP] التسوية (إقفال نهاية اليوم) عبر TCP/IP إلى 192.168.116.166:6100.
-        ///     تعرض مجاميع الجهاز ومجاميع البنك (المضيف)، ويجب أن تتطابق.
-        ///     رمز الإرجاع لا يُعرض في رسالة هنا.
+        /// EN: [Repeat last (USB)] Re-fetches the LAST transaction result over the COM port (madaapi_v1_8.dll).
+        ///     Use it when the answer of a payment was lost, before trying the payment again.
+        /// AR: [إعادة آخر عملية (USB)] يعيد جلب نتيجة آخر عملية عبر منفذ COM (madaapi_v1_8.dll).
+        ///     استخدمه عندما يضيع رد عملية دفع، قبل إعادة محاولة الدفع.
         /// </summary>
-        private void Recn_button_Click(object sender, EventArgs e)
+        private void btnRepeatUsb_Click(object sender, EventArgs e)
         {
-            // EN: Request buffer. Re-assigned below, so the 500-byte allocation is discarded.
-            // AR: مخزن الطلب. يُعاد إسناده لاحقاً، لذلك يتم تجاهل الحجز الأولي (500 بايت).
-            byte[] inReqbuff = new byte[100 * 5];
-            string ip;
-            string port;
-            byte[] intval = new byte[1];
-            // EN: Recon output buffers (sized generously, not exact field lengths).
-            // AR: مخازن مخرجات التسوية (بأحجام كبيرة احتياطاً، وليست أطوال الحقول الدقيقة).
-            byte[] rspCode = new byte[30];        // EN: response code      AR: رمز الاستجابة
-            byte[] terminalTotal = new byte[500]; // EN: terminal totals    AR: مجاميع الجهاز
-            byte[] hostTotal = new byte[500];     // EN: host/bank totals   AR: مجاميع البنك
-            byte[] stanNo = new byte[30];
-            byte[] dataTime = new byte[30];
-            byte[] terminalId = new byte[30];
-            byte[] merchantId = new byte[30];
-            // EN: Unused.   AR: غير مستخدم.
-            byte[] outresp = new byte[20000];
-
-            // EN: outRsplen, baudSpeed, parity, dataBits, stopBits are unused (leftovers from a COM version).
-            // AR: المتغيرات outRsplen و baudSpeed و parity و dataBits و stopBits غير مستخدمة (بقايا من نسخة COM).
-            int inReqlen = 0, outRsplen = 0;
-            uint baudSpeed = 0, parity = 0, dataBits = 0, stopBits = 0;
-
-            Array.Clear(outresp, 0, outresp.Length);
-            Array.Clear(inReqbuff, 0, inReqbuff.Length);
-
-            // EN: THIS is the request actually sent: "09;0!" (reconciliation command).
-            // AR: هذا هو الطلب المُرسل فعلياً: "09;0!" (أمر التسوية).
-            string send_buff = "";
-            send_buff += "09;0!";
-            inReqbuff = Encoding.ASCII.GetBytes(send_buff);
-            inReqlen = inReqbuff.Length;
-            // EN: TextString / inOutBuff / intval below are built but NOT passed to the DLL.
-            // AR: المتغيرات TextString و inOutBuff و intval أدناه تُجهَّز لكنها لا تُمرَّر إلى المكتبة.
-            string TextString;
-            TextString = "09;0;1!";
-            ip = "192.168.116.166";
-            port = "6100";
-
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
-
-
-            // EN: inReqlen is passed by reference ("ref"), the DLL may update it.
-            // AR: inReqlen يُمرَّر بالمرجع ("ref")، وقد تقوم المكتبة بتعديله.
-            var Result  = api_RequestReconTCPIPWORcpt(b_ip, b_port, inReqbuff, ref inReqlen, rspCode, terminalTotal, hostTotal, stanNo, dataTime, terminalId, merchantId);
-
-            string result = System.Text.Encoding.UTF8.GetString(terminalTotal);
-            Trans_richTextBox.AppendText("\nTerminalTotal: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(hostTotal);
-            Trans_richTextBox.AppendText("\nHostTotal: " + result);
-        }
-
-        /// <summary>
-        /// EN: [Recon_USB] RECONCILIATION over USB/COM port 9.
-        ///     Despite the method name "Recon_TCP_Click", this is the USB button and uses the COM function.
-        /// AR: [Recon_USB] التسوية عبر USB/COM على المنفذ 9.
-        ///     رغم أن اسم الدالة "Recon_TCP_Click"، فهذا زر USB ويستخدم دالة COM.
-        /// </summary>
-        private void Recon_TCP_Click(object sender, EventArgs e)
-        {
-            // EN: inReqbuff, outresp, outRespLen, outResp are unused here.
-            // AR: المتغيرات inReqbuff و outresp و outRespLen و outResp غير مستخدمة هنا.
-            byte[] inReqbuff = new byte[100 * 5];
-            byte[] intval = new byte[1];
-            byte[] rspCode = new byte[30];
-            byte[] terminalTotal = new byte[500];
-            byte[] hostTotal = new byte[500];
-            byte[] stanNo = new byte[30];
-            byte[] dataTime = new byte[30];
-            byte[] terminalId = new byte[30];
-            byte[] merchantId = new byte[30];
-            byte[] outresp = new byte[20000];
-            byte[] outRespLen = new byte[1];
-            StringBuilder outResp = new StringBuilder(15000);
-
-            int inReqlen = 0;
-            Array.Clear(outresp, 0, outresp.Length);
-            Array.Clear(inReqbuff, 0, inReqbuff.Length);
-
-            // EN: "09;0!" = reconciliation command.   AR: "09;0!" = أمر التسوية.
-            string TextString = "09;0!";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
-
-            // EN: COM9, 38400 8N1.   AR: المنفذ COM9، الإعدادات 38400 8N1.
-            var Result = api_RequestReconCOMWORcpt(9, 38400, 0, 8, 0, inOutBuff, intval, rspCode, terminalTotal, hostTotal, stanNo, dataTime, terminalId, merchantId);
-
-            string result = System.Text.Encoding.UTF8.GetString(terminalTotal);
-            Trans_richTextBox.AppendText("\nTerminalTotal: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(hostTotal);
-            Trans_richTextBox.AppendText("\nHostTotal: " + result);
-
-        }
-
-        /// <summary>
-        /// EN: [Refund_USB] REFUND of 0.50 SAR over USB/COM port 5, for original RRN 434615455456 dated 11/12/2024.
-        /// AR: [Refund_USB] عملية استرجاع بمبلغ 0.50 ريال عبر USB/COM على المنفذ 5، للعملية الأصلية
-        ///     ذات الرقم المرجعي 434615455456 بتاريخ 11/12/2024.
-        /// </summary>
-        private void button8_Click(object sender, EventArgs e)
-        {
-            string TextString;
-            // EN: Output buffers (same layout as button2_Click).   AR: مخازن المخرجات (نفس ترتيب button2_Click).
-            byte[] intval = new byte[1];
+            // EN: Output buffers (same layout as btnPurchaseUsb_Click).   AR: مخازن المخرجات (نفس ترتيب btnPurchaseUsb_Click).
             byte[] panNo = new byte[23];
             byte[] purAmount = new byte[13];
             byte[] stanNo = new byte[7];
@@ -746,45 +530,28 @@ namespace CDLL
             byte[] outRespLen = new byte[1];
             StringBuilder outResp = new StringBuilder(15000);
 
-            // EN: 2 = Refund.   AR: 2 = استرجاع.
-            int trnxType = 2;
-            // EN: "<amount>;<original RRN>;<original date DDMMYYYY>;1;1!"
-            // AR: "<المبلغ>;<الرقم المرجعي الأصلي>;<التاريخ الأصلي DDMMYYYY>;1;1!"
-            TextString = "50;434615455456;11122024;1;1!";
+            string TextString = "0B!";          // EN: repeat last transaction command   AR: أمر إعادة آخر عملية
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
-
-            // EN: Older test request with an extra field, kept for reference.
-            // AR: طلب تجريبي قديم فيه حقل إضافي، محفوظ للرجوع إليه.
-            //TextString = "100;123456781234;13112018;4153820015307984;0;1";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
-
-            // EN: Previous call on COM9, kept for reference.   AR: استدعاء سابق على COM9، محفوظ للرجوع إليه.
-            //var Result = api_RequestCOMTrxn(9, 38400, 0, 8, 0, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            var Result = api_RequestCOMTrxn(5, 38400, 0, 8, 0, inOutBuff, intval, trnxType, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            MessageBox.Show(Result.ToString());
-
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("PAN NO: " + result);
-
-            result = System.Text.Encoding.UTF8.GetString(schemeId);
-            Trans_richTextBox.AppendText("\nCARD ID: " + result);
+            LogStart("Repeat last (USB) / إعادة آخر عملية", ComTarget(), TextString);
+            var Result = api_RequestCOMRepeat(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
         }
 
         /// <summary>
-        /// EN: [Repeat_TCP] Re-fetches the LAST transaction result over TCP/IP from 192.168.8.174:6100.
-        ///     Uses madaapi_v1_8.dll.
-        /// AR: [Repeat_TCP] يعيد جلب نتيجة آخر عملية عبر TCP/IP من 192.168.8.174:6100.
-        ///     يستخدم المكتبة madaapi_v1_8.dll.
+        /// EN: [Repeat last (TCP)] Same over the network; also returns the card scheme name.
+        /// AR: [إعادة آخر عملية (TCP)] نفس العملية عبر الشبكة، وتُعيد أيضاً اسم شبكة البطاقة.
         /// </summary>
-        private void button9_Click(object sender, EventArgs e)
+        private void btnRepeatTcp_Click(object sender, EventArgs e)
         {
-            string TextString;
-            string ip;
-            string port;
-            // EN: Output buffers (same layout as button2_Click) + cardscheme.
-            // AR: مخازن المخرجات (نفس ترتيب button2_Click) بالإضافة إلى cardscheme.
-            byte[] intval = new byte[1];
+            byte[] b_ip, b_port;
+            if (!TryGetTcpAddress(out b_ip, out b_port))
+                return;
+
+            // EN: Output buffers (same layout as btnPurchaseUsb_Click) + cardscheme.
+            // AR: مخازن المخرجات (نفس ترتيب btnPurchaseUsb_Click) بالإضافة إلى cardscheme.
             byte[] panNo = new byte[23];
             byte[] purAmount = new byte[13];
             byte[] stanNo = new byte[7];
@@ -803,73 +570,371 @@ namespace CDLL
             byte[] outRespLen = new byte[1];
             StringBuilder outResp = new StringBuilder(15000);
 
+            string TextString = "0B!";          // EN: repeat last transaction command   AR: أمر إعادة آخر عملية
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
-            // EN: "0B!" = repeat last transaction command.   AR: "0B!" = أمر إعادة آخر عملية.
-            TextString = "0B!";
-            ip = "192.168.8.174";
-            port = "6100";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            byte[] b_ip = System.Text.Encoding.ASCII.GetBytes(ip);
-            byte[] b_port = System.Text.Encoding.ASCII.GetBytes(port);
-            intval[0] = (byte)inOutBuff.Length;
-
+            LogStart("Repeat last (TCP) / إعادة آخر عملية", TcpTarget(), TextString);
             var Result = api_RequestTCPIPRepeat(b_ip, b_port, inOutBuff, intval, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, cardscheme, outResp, outRespLen);
-            MessageBox.Show(Result.ToString());
+            LogResult(Result);
+            LogTransaction(panNo, schemeId, trxRrn, purAmount, stanNo, dataTime, authCode, rspCode, terminalId, ecrrefno);
+            LogField("Card scheme / شبكة البطاقة", cardscheme);
+        }
 
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("\nPAN NO: " + result);
+        // =============================================================================
+        // EN: RECONCILIATION (END OF DAY) / التسوية (إقفال اليوم)
+        // =============================================================================
 
-            result = System.Text.Encoding.UTF8.GetString(ecrrefno);
-            Trans_richTextBox.AppendText("\nECR REF NO: " + result);
+        /// <summary>
+        /// EN: [Reconciliation (USB)] End-of-day settlement over the COM port. Terminal and host totals should match.
+        /// AR: [التسوية (USB)] إقفال نهاية اليوم عبر منفذ COM. يجب أن تتطابق مجاميع الجهاز مع مجاميع البنك.
+        /// </summary>
+        private void btnReconUsb_Click(object sender, EventArgs e)
+        {
+            // EN: Recon output buffers (sized generously, as in the original sample).
+            // AR: مخازن مخرجات التسوية (بأحجام كبيرة احتياطاً، كما في المثال الأصلي).
+            byte[] rspCode = new byte[30];        // EN: response code      AR: رمز الاستجابة
+            byte[] terminalTotal = new byte[500]; // EN: terminal totals    AR: مجاميع الجهاز
+            byte[] hostTotal = new byte[500];     // EN: host/bank totals   AR: مجاميع البنك
+            byte[] stanNo = new byte[30];
+            byte[] dataTime = new byte[30];
+            byte[] terminalId = new byte[30];
+            byte[] merchantId = new byte[30];
+
+            string TextString = "09;0!";          // EN: reconciliation command   AR: أمر التسوية
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
+
+            LogStart("Reconciliation (USB) / التسوية", ComTarget(), TextString);
+            var Result = api_RequestReconCOMWORcpt(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval, rspCode, terminalTotal, hostTotal, stanNo, dataTime, terminalId, merchantId);
+            LogResult(Result);
+            LogRecon(rspCode, terminalTotal, hostTotal);
         }
 
         /// <summary>
-        /// EN: [Repeat_USB] Re-fetches the LAST transaction result over USB/COM port 17.
-        ///     Uses madaapi_v1_8.dll.
-        /// AR: [Repeat_USB] يعيد جلب نتيجة آخر عملية عبر USB/COM على المنفذ 17.
-        ///     يستخدم المكتبة madaapi_v1_8.dll.
+        /// EN: [Reconciliation (TCP)] Same over the network. This DLL function takes the request length by reference.
+        /// AR: [التسوية (TCP)] نفس العملية عبر الشبكة. دالة المكتبة هذه تأخذ طول الطلب بالمرجع.
         /// </summary>
-        private void button10_Click(object sender, EventArgs e)
+        private void btnReconTcp_Click(object sender, EventArgs e)
         {
-            string TextString;
-            // EN: Output buffers (same layout as button2_Click).   AR: مخازن المخرجات (نفس ترتيب button2_Click).
-            byte[] intval = new byte[1];
-            byte[] panNo = new byte[23];
-            byte[] purAmount = new byte[13];
-            byte[] stanNo = new byte[7];
-            byte[] dataTime = new byte[13];
-            byte[] expDate = new byte[5];
-            byte[] trxRrn = new byte[13];
-            byte[] authCode = new byte[7];
-            byte[] rspCode = new byte[4];
-            byte[] terminalId = new byte[17];
-            byte[] schemeId = new byte[3];
-            byte[] merchantId = new byte[16];
-            byte[] addtlAmount = new byte[13];
-            byte[] ecrrefno = new byte[17];
-            byte[] version = new byte[10];
-            byte[] outRespLen = new byte[1];
-            StringBuilder outResp = new StringBuilder(15000);
+            byte[] b_ip, b_port;
+            if (!TryGetTcpAddress(out b_ip, out b_port))
+                return;
 
+            byte[] rspCode = new byte[30];
+            byte[] terminalTotal = new byte[500];
+            byte[] hostTotal = new byte[500];
+            byte[] stanNo = new byte[30];
+            byte[] dataTime = new byte[30];
+            byte[] terminalId = new byte[30];
+            byte[] merchantId = new byte[30];
 
-            // EN: "0B!" = repeat last transaction command.   AR: "0B!" = أمر إعادة آخر عملية.
-            TextString = "0B!";
-            byte[] inOutBuff = System.Text.Encoding.ASCII.GetBytes(TextString);
-            intval[0] = (byte)inOutBuff.Length;
+            string send_buff = "09;0!";           // EN: reconciliation command   AR: أمر التسوية
+            byte[] inReqbuff = Encoding.ASCII.GetBytes(send_buff);
+            int inReqlen = inReqbuff.Length;      // EN: passed by "ref", the DLL may update it   AR: يُمرَّر بالمرجع وقد تعدّله المكتبة
 
+            LogStart("Reconciliation (TCP) / التسوية", TcpTarget(), send_buff);
+            var Result = api_RequestReconTCPIPWORcpt(b_ip, b_port, inReqbuff, ref inReqlen, rspCode, terminalTotal, hostTotal, stanNo, dataTime, terminalId, merchantId);
+            LogResult(Result);
+            LogRecon(rspCode, terminalTotal, hostTotal);
+        }
 
-            // EN: COM17, 38400 8N1.   AR: المنفذ COM17، الإعدادات 38400 8N1.
-            var Result = api_RequestCOMRepeat(17, 38400, 0, 8, 0, inOutBuff, intval, panNo, purAmount, stanNo, dataTime, expDate, trxRrn, authCode, rspCode, terminalId, schemeId, merchantId, addtlAmount, ecrrefno, version, outResp, outRespLen);
-            MessageBox.Show(Result.ToString());
+        // =============================================================================
+        // EN: TERMINAL INFO / معلومات الجهاز
+        // =============================================================================
 
-            string result = System.Text.Encoding.UTF8.GetString(panNo);
-            Trans_richTextBox.AppendText("PAN NO: " + result);
+        /// <summary>
+        /// EN: [Merchant info (USB)] Reads merchant name/address (English + Arabic). The DLL has no TCP version.
+        /// AR: [بيانات التاجر (USB)] يقرأ اسم التاجر وعنوانه (إنجليزي + عربي). المكتبة لا توفر نسخة TCP.
+        /// </summary>
+        private void btnMerchant_Click(object sender, EventArgs e)
+        {
+            // EN: English fields come back in byte[]; Arabic fields need Unicode, so they use StringBuilder.
+            // AR: الحقول الإنجليزية تعود في byte[]، والعربية تحتاج يونيكود لذلك تستخدم StringBuilder.
+            byte[] merchantNameEng = new byte[500];
+            byte[] merchantAddEng1 = new byte[500];
+            byte[] merchantAddopt1 = new byte[500];
+            StringBuilder merchantNameArb = new StringBuilder(500);
+            StringBuilder merchantAddArb1 = new StringBuilder(500);
+            StringBuilder merchantAddopt2 = new StringBuilder(500);
 
-            result = System.Text.Encoding.UTF8.GetString(schemeId);
-            Trans_richTextBox.AppendText("\nCARD ID: " + result);
+            string TextString = "0A!";            // EN: get merchant details command   AR: أمر طلب بيانات التاجر
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
 
-            result = System.Text.Encoding.UTF8.GetString(trxRrn);
-            Trans_richTextBox.AppendText("\nTrxRrn : " + result);
+            LogStart("Merchant info (USB) / بيانات التاجر", ComTarget(), TextString);
+            var Result = api_GetMerchantDetails(ComPort, BaudRate, Parity, DataBits, StopBits, inOutBuff, intval, merchantNameEng, merchantNameArb, merchantAddEng1, merchantAddArb1, merchantAddopt1, merchantAddopt2);
+            LogResult(Result);
+            LogField("Merchant name EN / اسم التاجر EN", merchantNameEng);
+            LogText("Merchant name AR / اسم التاجر AR", merchantNameArb.ToString());
+            LogField("Address EN / العنوان EN", merchantAddEng1);
+            LogText("Address AR / العنوان AR", merchantAddArb1.ToString());
+        }
+
+        /// <summary>
+        /// EN: [Terminal ID (TCP)] Reads the Terminal ID over the network. The DLL has no COM version.
+        /// AR: [رقم الجهاز (TCP)] يقرأ رقم الجهاز عبر الشبكة. المكتبة لا توفر نسخة COM.
+        /// </summary>
+        private void btnTerminalId_Click(object sender, EventArgs e)
+        {
+            byte[] b_ip, b_port;
+            if (!TryGetTcpAddress(out b_ip, out b_port))
+                return;
+
+            byte[] terminalId = new byte[17];     // EN: 16-char Terminal ID + null   AR: رقم الجهاز 16 حرفاً + حرف النهاية
+
+            string TextString = "07!";            // EN: get terminal ID command   AR: أمر طلب رقم الجهاز
+            byte[] inOutBuff = Encoding.ASCII.GetBytes(TextString);
+            byte[] intval = new byte[] { (byte)inOutBuff.Length };
+
+            LogStart("Terminal ID (TCP) / رقم الجهاز", TcpTarget(), TextString);
+            var Result = api_TCPIPGetTerminalID(b_ip, b_port, inOutBuff, intval, terminalId);
+            LogResult(Result);
+            LogField("Terminal ID / رقم الجهاز", terminalId);
+        }
+
+        // =============================================================================
+        // EN: CLEAR / SAVE DEFAULTS / مسح السجل وحفظ الافتراضي
+        // =============================================================================
+
+        private void btnClearLog_Click(object sender, EventArgs e)
+        {
+            Trans_richTextBox.Clear();
+        }
+
+        /// <summary>
+        /// EN: Writes the current form values into CDLL.exe.config so they become the defaults next time.
+        ///     Note: rebuilding the project copies app.config over CDLL.exe.config again. To change the
+        ///     defaults permanently, edit app.config too.
+        /// AR: يكتب القيم الحالية في CDLL.exe.config لتصبح القيم الافتراضية في المرة القادمة.
+        ///     ملاحظة: إعادة بناء المشروع تنسخ app.config فوق CDLL.exe.config مرة أخرى. لتغيير القيم
+        ///     الافتراضية بشكل دائم عدّل app.config أيضاً.
+        /// </summary>
+        private void btnSaveDefaults_Click(object sender, EventArgs e)
+        {
+            byte[] ip, port;
+            string refundRequest;
+            if (!TryGetTcpAddress(out ip, out port) || !TryBuildRefundRequest(out refundRequest))
+                return;
+
+            try
+            {
+                Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                SaveSetting(config, "PaymentMachinePort", numComPort.Value);
+                SaveSetting(config, "BaudRate", numBaudRate.Value);
+                SaveSetting(config, "Parity", numParity.Value);
+                SaveSetting(config, "DataBits", numDataBits.Value);
+                SaveSetting(config, "StopBits", numStopBits.Value);
+                SaveSetting(config, "TerminalIp", txtIp.Text.Trim());
+                SaveSetting(config, "TerminalTcpPort", txtTcpPort.Text.Trim());
+                SaveSetting(config, "PurchaseAmount", numPurchaseAmount.Value);
+                SaveSetting(config, "RefundAmount", numRefundAmount.Value);
+                SaveSetting(config, "OriginalRrn", txtOriginalRrn.Text.Trim());
+                SaveSetting(config, "OriginalDate", dtpOriginalDate.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                config.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("appSettings");
+
+                MessageBox.Show("Defaults saved to / تم حفظ القيم الافتراضية في:\n" + config.FilePath, Text);
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                // EN: e.g. the exe folder is read-only (Program Files without admin rights).
+                // AR: مثلاً مجلد البرنامج للقراءة فقط (Program Files بدون صلاحيات المسؤول).
+                MessageBox.Show("Could not save defaults / تعذر حفظ القيم الافتراضية:\n" + ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        // =============================================================================
+        // EN: VALUES READ FROM THE FORM / القيم المقروءة من النافذة
+        // =============================================================================
+
+        private int ComPort { get { return (int)numComPort.Value; } }
+        private int BaudRate { get { return (int)numBaudRate.Value; } }
+        private int Parity { get { return (int)numParity.Value; } }
+        private int DataBits { get { return (int)numDataBits.Value; } }
+        private int StopBits { get { return (int)numStopBits.Value; } }
+
+        /// <summary>
+        /// EN: Validates the IP and TCP port boxes and returns them as ASCII bytes + '\0'.
+        ///     The original sample sent them without '\0', which only worked if the memory after the
+        ///     array happened to be zero; the DLL reads them as C strings.
+        /// AR: يتحقق من خانتي IP ومنفذ TCP ويُعيدهما كبايتات ASCII مع '\0'.
+        ///     المثال الأصلي كان يرسلهما بدون '\0'، وكان يعمل فقط إذا صادف أن الذاكرة بعد المصفوفة أصفار،
+        ///     لأن المكتبة تقرأهما كنصوص C.
+        /// </summary>
+        private bool TryGetTcpAddress(out byte[] ip, out byte[] port)
+        {
+            ip = null;
+            port = null;
+            string ipText = txtIp.Text.Trim();
+            string portText = txtTcpPort.Text.Trim();
+
+            IPAddress address;
+            if (ipText.Split('.').Length != 4 || !IPAddress.TryParse(ipText, out address) || address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                ShowInputError(txtIp, "Enter a valid IPv4 address, e.g. 192.168.1.10. / أدخل عنوان IP صحيحاً، مثل 192.168.1.10.");
+                return false;
+            }
+
+            int portNumber;
+            if (!int.TryParse(portText, NumberStyles.None, CultureInfo.InvariantCulture, out portNumber) || portNumber < 1 || portNumber > 65535)
+            {
+                ShowInputError(txtTcpPort, "TCP port must be a number from 1 to 65535. / منفذ TCP يجب أن يكون رقماً من 1 إلى 65535.");
+                return false;
+            }
+
+            ip = Encoding.ASCII.GetBytes(ipText + "\0");
+            port = Encoding.ASCII.GetBytes(portText + "\0");
+            return true;
+        }
+
+        /// <summary>EN: "&lt;halalas&gt;;0;1!" from the Purchase amount box.  AR: "&lt;الهللات&gt;;0;1!" من خانة مبلغ الشراء.</summary>
+        private string PurchaseRequest()
+        {
+            return ToHalalas(numPurchaseAmount.Value) + ";0;1!";
+        }
+
+        /// <summary>
+        /// EN: "&lt;halalas&gt;;&lt;RRN&gt;;&lt;DDMMYYYY&gt;;1;1!" from the Refund boxes. Returns false (and says why) if the RRN is not 12 digits.
+        /// AR: "&lt;الهللات&gt;;&lt;الرقم المرجعي&gt;;&lt;DDMMYYYY&gt;;1;1!" من خانات الاسترجاع. تُعيد false (مع السبب) إذا لم يكن الرقم المرجعي 12 رقماً.
+        /// </summary>
+        private bool TryBuildRefundRequest(out string request)
+        {
+            request = null;
+            string rrn = txtOriginalRrn.Text.Trim();
+            if (rrn.Length != 12 || !IsDigits(rrn))
+            {
+                ShowInputError(txtOriginalRrn, "Original RRN must be exactly 12 digits. / الرقم المرجعي يجب أن يكون 12 رقماً بالضبط.");
+                return false;
+            }
+
+            // EN: InvariantCulture: on Arabic (Saudi) Windows the default calendar is Hijri.
+            // AR: InvariantCulture: على Windows العربي (السعودية) التقويم الافتراضي هجري.
+            string date = dtpOriginalDate.Value.ToString("ddMMyyyy", CultureInfo.InvariantCulture);
+            request = ToHalalas(numRefundAmount.Value) + ";" + rrn + ";" + date + ";1;1!";
+            return true;
+        }
+
+        /// <summary>EN: SAR -> halalas: 43.71 -> "4371".  AR: ريال -> هللة: 43.71 -> "4371".</summary>
+        private static string ToHalalas(decimal amountSar)
+        {
+            decimal halalas = Math.Round(amountSar, 2, MidpointRounding.AwayFromZero) * 100m;
+            return ((long)halalas).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsDigits(string value)
+        {
+            foreach (char c in value)
+                if (c < '0' || c > '9')
+                    return false;
+            return true;
+        }
+
+        private string ComTarget()
+        {
+            return string.Format(CultureInfo.InvariantCulture, "COM{0} {1} baud, parity {2}, {3} data bits, stop bits {4}",
+                ComPort, BaudRate, Parity, DataBits, StopBits);
+        }
+
+        private string TcpTarget()
+        {
+            return txtIp.Text.Trim() + ":" + txtTcpPort.Text.Trim();
+        }
+
+        private void ShowInputError(Control control, string message)
+        {
+            MessageBox.Show(message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            control.Focus();
+        }
+
+        // ---- app.config defaults / القيم الافتراضية من app.config
+
+        private static string Setting(string key, string fallback)
+        {
+            string value = ConfigurationManager.AppSettings[key];
+            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        }
+
+        /// <summary>EN: Sets a number box from app.config, clamped to the box's allowed range.  AR: يضبط خانة رقمية من app.config ضمن المدى المسموح.</summary>
+        private static void SetNumber(NumericUpDown box, string key, decimal fallback)
+        {
+            decimal value;
+            if (!decimal.TryParse(Setting(key, ""), NumberStyles.Number, CultureInfo.InvariantCulture, out value))
+                value = fallback;
+            box.Value = Math.Max(box.Minimum, Math.Min(box.Maximum, value));
+        }
+
+        private static void SaveSetting(Configuration config, string key, object value)
+        {
+            string text = Convert.ToString(value, CultureInfo.InvariantCulture);
+            if (config.AppSettings.Settings[key] == null)
+                config.AppSettings.Settings.Add(key, text);
+            else
+                config.AppSettings.Settings[key].Value = text;
+        }
+
+        // =============================================================================
+        // EN: OUTPUT / عرض النتائج
+        // =============================================================================
+
+        private void LogStart(string operation, string target, string request)
+        {
+            Trans_richTextBox.AppendText(
+                "[" + DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + "] " + operation + Environment.NewLine +
+                "  -> " + target + Environment.NewLine +
+                "  Request / الطلب: " + request + Environment.NewLine);
+        }
+
+        /// <summary>
+        /// EN: Shows the DLL return code in the log and in a message box (as the original sample did).
+        /// AR: يعرض رمز الإرجاع من المكتبة في السجل وفي رسالة (كما كان يفعل المثال الأصلي).
+        /// </summary>
+        private void LogResult(IntPtr result)
+        {
+            LogText("Return code / رمز الإرجاع", result.ToString());
+            MessageBox.Show("Return code / رمز الإرجاع: " + result, Text);
+        }
+
+        private void LogTransaction(byte[] panNo, byte[] schemeId, byte[] trxRrn, byte[] purAmount, byte[] stanNo, byte[] dataTime, byte[] authCode, byte[] rspCode, byte[] terminalId, byte[] ecrrefno)
+        {
+            LogField("PAN NO / رقم البطاقة", panNo);
+            LogField("CARD ID / نوع البطاقة", schemeId);
+            LogField("TrxRrn / الرقم المرجعي", trxRrn);
+            LogField("Amount / المبلغ", purAmount);
+            LogField("STAN / رقم التتبع", stanNo);
+            LogField("Date-time / التاريخ والوقت", dataTime);
+            LogField("Auth code / رمز الموافقة", authCode);
+            LogField("Response code / رمز الاستجابة", rspCode);
+            LogField("Terminal ID / رقم الجهاز", terminalId);
+            LogField("ECR REF NO / مرجع نقاط البيع", ecrrefno);
+        }
+
+        private void LogRecon(byte[] rspCode, byte[] terminalTotal, byte[] hostTotal)
+        {
+            LogField("Response code / رمز الاستجابة", rspCode);
+            LogField("Terminal total / مجاميع الجهاز", terminalTotal);
+            LogField("Host total / مجاميع البنك", hostTotal);
+        }
+
+        private void LogField(string label, byte[] buffer)
+        {
+            LogText(label, Read(buffer));
+        }
+
+        private void LogText(string label, string value)
+        {
+            Trans_richTextBox.AppendText("  " + label + ": " + value + Environment.NewLine);
+            Trans_richTextBox.ScrollToCaret();
+        }
+
+        /// <summary>
+        /// EN: Text the DLL wrote into a buffer, up to the first '\0' (the original printed the trailing '\0's too).
+        /// AR: النص الذي كتبته المكتبة في المخزن حتى أول '\0' (الأصل كان يطبع أحرف '\0' الزائدة أيضاً).
+        /// </summary>
+        private static string Read(byte[] buffer)
+        {
+            int end = Array.IndexOf(buffer, (byte)0);
+            return Encoding.UTF8.GetString(buffer, 0, end < 0 ? buffer.Length : end).Trim();
         }
     }
 }
