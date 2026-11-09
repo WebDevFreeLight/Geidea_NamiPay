@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Windows.Forms;
 
 namespace CDLL
@@ -25,9 +26,14 @@ namespace CDLL
             // EN: Use GDI+ default text rendering (must be called before any window is created).
             // AR: استخدام طريقة رسم النصوص الافتراضية (يجب استدعاؤها قبل إنشاء أي نافذة).
             Application.SetCompatibleTextRenderingDefault(false);
-            // EN: Open the main window (Form1) and run the message loop until it is closed.
-            // AR: فتح النافذة الرئيسية (Form1) وتشغيل حلقة الرسائل حتى يتم إغلاقها.
-            Application.Run(new Form1());
+            // EN: Open the main window and run the message loop until it is closed.
+            //     app.config UseSimulator=true -> SimulatorForm (fake terminal, no device, no DLL).
+            //     Anything else (default)      -> Form1 (real terminal, unchanged).
+            // AR: فتح النافذة الرئيسية وتشغيل حلقة الرسائل حتى يتم إغلاقها.
+            //     إذا كان UseSimulator=true في app.config -> SimulatorForm (جهاز وهمي بدون جهاز ولا مكتبة).
+            //     غير ذلك (الافتراضي)                    -> Form1 (الجهاز الفعلي، بدون تغيير).
+            bool useSimulator = string.Equals(ConfigurationManager.AppSettings["UseSimulator"], "true", StringComparison.OrdinalIgnoreCase);
+            Application.Run(useSimulator ? (Form)new SimulatorForm() : new Form1());
         }
     }
 }
