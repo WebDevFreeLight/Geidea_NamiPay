@@ -1,13 +1,12 @@
-# Build output
-[Bb]in/*
-[Oo]bj/
+# Build output (leading **/ so it matches bin/obj folders in every project, not just the repo root)
+**/[Bb]in/*
+**/[Oo]bj/
 *.pdb
 *.exe
 *.vshost.*
 
 # Keep the native mada payment DLLs loaded via DllImport at runtime
-!CDLL/bin/
-CDLL/bin/*
+# (NewImplementations/Mada.Api links these same files, so they are the single source)
 !CDLL/bin/Debug/
 CDLL/bin/Debug/*
 !CDLL/bin/Debug/madaapi_v1_8.dll

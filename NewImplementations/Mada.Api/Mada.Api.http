@@ -1,0 +1,46 @@
+# EN: Sample requests. Open this file in Visual Studio / VS Code (REST Client) and click "Send Request".
+# AR: طلبات تجريبية. افتح هذا الملف في Visual Studio أو VS Code (REST Client) واضغط "Send Request".
+
+@api = http://localhost:5080
+
+### Check status (TCP) / فحص الحالة
+GET {{api}}/api/terminal/status?transport=Tcp
+
+### Check status (COM) / فحص الحالة
+GET {{api}}/api/terminal/status?transport=Com
+
+### Terminal ID (TCP only) / رقم الجهاز
+GET {{api}}/api/terminal/id
+
+### Merchant details (COM only) / بيانات التاجر
+GET {{api}}/api/terminal/merchant
+
+### Purchase 43.71 SAR / شراء
+POST {{api}}/api/transactions/purchase
+Content-Type: application/json
+
+{ "amount": 43.71, "transport": "Tcp" }
+
+### Refund 0.50 SAR / استرجاع
+POST {{api}}/api/transactions/refund
+Content-Type: application/json
+
+{ "amount": 0.50, "originalRrn": "434615455456", "originalDate": "2024-12-11", "transport": "Com" }
+
+### Repeat last transaction / إعادة آخر عملية
+POST {{api}}/api/transactions/repeat
+Content-Type: application/json
+
+{ "transport": "Tcp" }
+
+### Reconciliation / التسوية
+POST {{api}}/api/reconciliation
+Content-Type: application/json
+
+{ "transport": "Tcp" }
+
+### Validation error example: 3 decimals -> 400 / مثال خطأ تحقق
+POST {{api}}/api/transactions/purchase
+Content-Type: application/json
+
+{ "amount": 1.005 }

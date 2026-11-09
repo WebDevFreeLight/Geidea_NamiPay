@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      EN: madaapi_v1_8.dll and madaapi_v1_9.dll are 32-bit (x86) native DLLs. A 64-bit process cannot
+          load them (BadImageFormatException), so this API MUST run as a 32-bit process.
+          win-x86 makes the generated Mada.Api.exe 32-bit; it runs on the x86 .NET 8 runtime
+          installed in "C:\Program Files (x86)\dotnet".
+      AR: المكتبتان madaapi_v1_8.dll و madaapi_v1_9.dll أصليتان بنظام 32-بت (x86). العملية بنظام 64-بت
+          لا تستطيع تحميلهما (BadImageFormatException)، لذلك يجب تشغيل هذه الخدمة كعملية 32-بت.
+          الإعداد win-x86 يجعل Mada.Api.exe بنظام 32-بت، ويعمل على ‎.NET 8 x86 المثبّت في
+          "C:\Program Files (x86)\dotnet".
+    -->
+    <PlatformTarget>x86</PlatformTarget>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EN: Swagger UI for testing the endpoints in a browser (Development only).   AR: واجهة Swagger لاختبار الخدمة من المتصفح (في بيئة التطوير فقط). -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mada.Contracts\Mada.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      EN: Reuse the vendor DLLs already tracked in the old sample (CDLL\bin\Debug) instead of keeping a
+          second copy. They are copied next to Mada.Api.exe at build time, where [DllImport] finds them.
+      AR: إعادة استخدام مكتبات المورّد الموجودة في المثال القديم (CDLL\bin\Debug) بدلاً من نسخة ثانية.
+          تُنسخ بجانب Mada.Api.exe عند البناء، وهناك يجدها [DllImport].
+    -->
+    <None Include="..\..\CDLL\bin\Debug\madaapi_v1_8.dll" Link="madaapi_v1_8.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\CDLL\bin\Debug\madaapi_v1_9.dll" Link="madaapi_v1_9.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

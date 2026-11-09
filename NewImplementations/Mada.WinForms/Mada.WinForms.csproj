@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EN: .NET 8 Windows Forms client. It never loads the mada DLLs; it only calls Mada.Api over HTTP,
+        so it can run as 64-bit (AnyCPU) and on any PC that can reach the API.
+    AR: واجهة Windows Forms على ‎.NET 8. لا تحمّل مكتبات مدى أبداً، بل تستدعي Mada.Api عبر HTTP فقط،
+        لذلك يمكن تشغيلها بنظام 64-بت (AnyCPU) وعلى أي جهاز يستطيع الوصول إلى الخدمة.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mada.Contracts\Mada.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

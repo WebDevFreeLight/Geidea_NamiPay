@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EN: Shared request/response types used by BOTH Mada.Api and Mada.WinForms, so the JSON shape can never drift.
+    AR: أنواع الطلبات والاستجابات المشتركة بين Mada.Api و Mada.WinForms، حتى لا يختلف شكل JSON بينهما أبداً.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
