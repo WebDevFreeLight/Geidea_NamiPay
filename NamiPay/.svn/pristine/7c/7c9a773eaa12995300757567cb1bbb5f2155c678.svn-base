@@ -1,0 +1,258 @@
+﻿<Window x:Class="SkyBandECRNew.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SkyBandECRNew"
+        mc:Ignorable="d"
+        Title="NamiPay ECR App v1.0.0.6" Icon="img\NamiPay-Icon.png" Height="742" Width="1400" Background="#F5F5F5">
+	<Grid x:Name="fullScreen" Margin="20,20,20,14" IsEnabled="True">
+		<Grid.ColumnDefinitions >
+			<ColumnDefinition Width="auto"/>
+			<ColumnDefinition Width="auto"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto" />
+			<RowDefinition Height="auto" />
+		</Grid.RowDefinitions>
+		<CheckBox x:Name="chkEtp" Content="Enable Terminal Printer" IsEnabled="False"  HorizontalAlignment="Left" Margin="3,0,0,0" VerticalAlignment="Top" Grid.Column="1" Height="20"/>
+		<CheckBox x:Name="chkEcrref" Click="CheckBox_Click"  Content="ECR Ref" Grid.Column="1" HorizontalAlignment="Left" Margin="339,3,0,0" VerticalAlignment="Top" Width="80" Height="20" Grid.RowSpan="2"/>
+		<TextBox x:Name="txtEcrref" IsEnabled="False" SelectionChanged="ECRRefTextChanged" PreviewTextInput="ECRRefValidationTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="411,-5,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="160"/>
+		<GroupBox Foreground="#FC860D" BorderBrush="#E9E9E9" Background="#E9E9E9"  HorizontalAlignment="Left" Height="75" Margin="0,3,-137,0" Grid.Row="1" VerticalAlignment="Top" Width="880" Grid.ColumnSpan="2">
+			<Grid  >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="14*"/>
+					<ColumnDefinition Width="90*"/>
+					<ColumnDefinition Width="63*"/>
+					<ColumnDefinition Width="476*"/>
+					<ColumnDefinition Width="205*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="50*" />
+				</Grid.RowDefinitions>
+				<RadioButton x:Name="rdbCom"  GroupName="conn" Content="COM" Margin="13,45,45,0" VerticalAlignment="Top"  Checked="TCPCOMOnChange" Grid.ColumnSpan="2"/>
+				<RadioButton x:Name="rdbTcp" GroupName="conn" Content="TCP/IP" HorizontalAlignment="Right" Margin="0,45,32,0" VerticalAlignment="Top" Checked="TCPCOMOnChange" Grid.ColumnSpan="2" Grid.Column="1">
+					<RadioButton.Style>
+						<Style TargetType="RadioButton">
+							<Setter Property="Background" Value="LightBlue"/>
+							<Setter Property="Foreground" Value="DarkBlue"/>
+							<Style.Triggers>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter Property="Background" Value="LightGreen"/>
+									<Setter Property="Foreground" Value="DarkGreen"/>
+								</Trigger>
+							</Style.Triggers>
+						</Style>
+					</RadioButton.Style>
+				</RadioButton>
+				<Button  x:Name="btnConnect" Content="Connect" IsEnabled="True" Grid.Column="4" HorizontalAlignment="Left" Margin="1,25,0,0" VerticalAlignment="Top" Width="92" Foreground="Black" FontWeight="Bold" FontSize="15" Background="#68d957" Height="35" Click="Connect" RenderTransformOrigin="0.489,0.143"/>
+				<Button  x:Name="btnDisConnect" Content="Disconnect" IsEnabled="False" Grid.Column="4" HorizontalAlignment="Left" Margin="104,25,0,0" VerticalAlignment="Top" Width="92" Foreground="Black" FontWeight="Bold" FontSize="15" Background="#f0a6a1" Height="35" Click="DisConnect"/>
+				<GroupBox x:Name="grpTcpSetting" IsEnabled="false" Visibility="Visible" Grid.Column="2" Header="TCP/IP Setting" HorizontalAlignment="Left" Height="65" Margin="55,5,0,-1" VerticalAlignment="Top" Width="460" Grid.ColumnSpan="2">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="32*"/>
+							<ColumnDefinition Width="50*"/>
+							<ColumnDefinition Width="30*"/>
+							<ColumnDefinition Width="50*"/>
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="100*" />
+						</Grid.RowDefinitions>
+						<Label  x:Name="lblIpAddress" Content="IP Address"  HorizontalAlignment="Left" Margin="4,9,0,0" VerticalAlignment="Top" Width="70"/>
+						<Label x:Name="lblPort" Content="IP Port" Grid.Column="2" HorizontalAlignment="Left" Margin="7,9,0,0" VerticalAlignment="Top" Width="58" RenderTransformOrigin="0.483,0.615"/>
+						<TextBox x:Name="txtIpAddress" IsEnabled="true" SelectionChanged="IPTextChanged" PreviewTextInput="NumberValidationTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="5,14,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="130"/>
+						<TextBox x:Name="txtPort" PreviewTextInput="PORTTextBox" IsEnabled="true" SelectionChanged="PortTextChanged" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="82,14,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="130" Grid.ColumnSpan="2"/>
+					</Grid>
+				</GroupBox>
+				<GroupBox x:Name="grpComSetting" Visibility="Hidden" Grid.Column="3" Header="COM Setting" HorizontalAlignment="Left" Height="89" Margin="7,5,0,-25" VerticalAlignment="Top" Width="460">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="9*"/>
+							<ColumnDefinition Width="439*"/>
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="100*" />
+							<RowDefinition Height="100*" />
+						</Grid.RowDefinitions>
+						<Label Content="PORT" HorizontalAlignment="Left" Margin="27,-1,0,0" VerticalAlignment="Top" Width="68" Grid.Column="1"/>
+						<ComboBox x:Name="PORTCOM" PreviewTextInput="PORTTextBox" HorizontalAlignment="Left" Height="23" Margin="4,21,0,0"   VerticalAlignment="Top" Width="125" Grid.RowSpan="2" Grid.ColumnSpan="2"/>
+						<Label Content="Baud Speed" HorizontalAlignment="Left" Margin="201,-1,0,0" VerticalAlignment="Top" Width="87" Grid.Column="1"/>
+						<ComboBox x:Name="BAUDSPEED" HorizontalAlignment="Left" Margin="201,22,0,0" VerticalAlignment="Top" Width="82" Grid.RowSpan="2" Grid.Column="1">
+							<ComboBoxItem Content="2400" IsSelected="True"></ComboBoxItem>
+							<ComboBoxItem Content="4800"></ComboBoxItem>
+							<ComboBoxItem Content="19200"></ComboBoxItem>
+							<ComboBoxItem Content="28800"></ComboBoxItem>
+							<ComboBoxItem Content="38400"></ComboBoxItem>
+							<ComboBoxItem Content="115200"></ComboBoxItem>
+						</ComboBox>
+						<Label Content="Parity" HorizontalAlignment="Left" Margin="125,-1,0,0" VerticalAlignment="Top" Width="71" Height="25" Grid.Column="1" RenderTransformOrigin="0.7,0.4"/>
+						<ComboBox x:Name="PARITY" HorizontalAlignment="Left" Margin="125,22,0,0" VerticalAlignment="Top" Width="63" Grid.RowSpan="2" Grid.Column="1">
+							<ComboBoxItem  Content="None" IsSelected="True"></ComboBoxItem>
+							<ComboBoxItem  Content="Odd"></ComboBoxItem>
+							<ComboBoxItem  Content="Even"></ComboBoxItem>
+							<ComboBoxItem  Content="Mark"></ComboBoxItem>
+							<ComboBoxItem  Content="Space"></ComboBoxItem>
+						</ComboBox>
+						<Label Content="Data Bits" HorizontalAlignment="Left" Margin="288,-1,0,0" VerticalAlignment="Top" Grid.Column="1" Width="57"/>
+						<Label Content="Stop Bits" HorizontalAlignment="Left" Margin="345,-2,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+						<ComboBox x:Name="DATABITS" HorizontalAlignment="Left" Margin="288,22,0,0" VerticalAlignment="Top" Width="52" Grid.RowSpan="2" Grid.Column="1">
+							<ComboBoxItem  Content="5" IsSelected="True"></ComboBoxItem>
+							<ComboBoxItem  Content="6"></ComboBoxItem>
+							<ComboBoxItem  Content="7"></ComboBoxItem>
+							<ComboBoxItem  Content="8"></ComboBoxItem>
+						</ComboBox>
+						<ComboBox x:Name="STOPBITS" HorizontalAlignment="Left" Margin="345,22,0,0" VerticalAlignment="Top" Width="80" Grid.RowSpan="2" Grid.Column="1">
+							<ComboBoxItem Content="1" IsSelected="True"></ComboBoxItem>
+							<ComboBoxItem Content="1.5"></ComboBoxItem>
+							<ComboBoxItem Content="2"></ComboBoxItem>
+						</ComboBox>
+					</Grid>
+				</GroupBox>
+
+
+			</Grid>
+		</GroupBox>
+		<Label x:Name="ConnectL" Content="Not Connected" FontWeight="Bold" HorizontalContentAlignment="Center" FontSize="18" Background="#f0a6a1"   Grid.Column="1" HorizontalAlignment="Left" Margin="478,83,0,0" Grid.Row="1" VerticalAlignment="Top" Width="203" Height="30" />
+		<Image x:Name="ConnectImg" Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="651,85,0,0" Grid.Row="1" VerticalAlignment="Top" Width="28"/>
+		<GroupBox Background="#E9E9E9" HorizontalAlignment="Left" Height="50" Margin="0,118,-135,0" Grid.Row="1" VerticalAlignment="Top" Width="880" Grid.ColumnSpan="2">
+			<Grid Margin="0,0,0,-6">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="55*"/>
+					<ColumnDefinition Width="55*"/>
+					<ColumnDefinition Width="80*"/>
+					<ColumnDefinition Width="100*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="3*" />
+					<RowDefinition Height="22*"/>
+				</Grid.RowDefinitions>
+				<Label x:Name="TRANSTYPEL" IsEnabled="false" Content="Trans Type" HorizontalAlignment="Left" Margin="-6,10,0,0" VerticalAlignment="Top" Width="73" Height="30" Grid.Row="1"/>
+				<Label x:Name="RRNL" IsEnabled="false" Content="RRN" Grid.Column="1" Margin="23,10,95,0" VerticalAlignment="Top" RenderTransformOrigin="0.394,0.615" Height="30" Grid.Row="1"/>
+				<Label x:Name="DateL" IsEnabled="false" Content="Date" Grid.Column="1" HorizontalAlignment="Left" Margin="155,10,0,0" VerticalAlignment="Top" Height="30" Grid.Row="1" Grid.ColumnSpan="2" RenderTransformOrigin="0.714,0.5"/>
+				<Label x:Name="OACL" IsEnabled="false" Content="Auth Code" Grid.Column="2" HorizontalAlignment="Left" Margin="124,10,0,0" VerticalAlignment="Top" Width="76" Height="25" Grid.Row="1" RenderTransformOrigin="0.592,0.6"/>
+				<ComboBox x:Name="TRANSTYPE" IsEnabled="False" SelectedIndex="0" SelectionChanged="TRANSTYPESelection" Margin="57,10,140,0" VerticalAlignment="Top" Height="25" Grid.ColumnSpan="2" Grid.Row="1">
+					<ComboBoxItem IsSelected="True"></ComboBoxItem>
+					<ComboBoxItem Content="Register"></ComboBoxItem>
+					<ComboBoxItem Content="Start Session"></ComboBoxItem>
+					<ComboBoxItem Content="End Session"></ComboBoxItem>
+					<ComboBoxItem Content="Purchase"></ComboBoxItem>
+					<ComboBoxItem Content="Purchase Cashback"></ComboBoxItem>
+					<ComboBoxItem Content="Refund"></ComboBoxItem>
+					<ComboBoxItem Content="Pre Authorization"></ComboBoxItem>
+					<ComboBoxItem Content="Pre Auth Extension"></ComboBoxItem>
+					<ComboBoxItem Content="Pre Auth Void"></ComboBoxItem>
+					<ComboBoxItem Content="Purchase Advice"></ComboBoxItem>
+					<ComboBoxItem Content="Cash Advance"></ComboBoxItem>
+					<ComboBoxItem Content="Reversal"></ComboBoxItem>
+					<ComboBoxItem Content="Reconciliation"></ComboBoxItem>
+					<ComboBoxItem Content="Bill Payment"></ComboBoxItem>
+					<ComboBoxItem Content="Repeat"></ComboBoxItem>
+				</ComboBox>
+				<TextBox x:Name="RRNT" Visibility="Visible" SelectionChanged="RrnTextChanged" IsEnabled="False" PreviewTextInput="RRNValidationTextBox" Grid.Column="1" Height="25" Margin="55,10,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Grid.Row="1"/>
+				<DatePicker x:Name="DateT" Visibility="Visible" Focusable="False" IsEnabled="False" Grid.Column="2" HorizontalAlignment="Left" Margin="25,10,0,0" VerticalAlignment="Top" Height="25" Width="100" Grid.Row="1"/>
+				<TextBox x:Name="OACT" IsEnabled="False" SelectionChanged="OacTextChanged"  PreviewTextInput="OACValidationTextBox" Grid.Column="2" HorizontalAlignment="Right" Height="25" Margin="0,10,249,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Grid.Row="1" Grid.ColumnSpan="2"/>
+				<ComboBox x:Name="AdminTransaction" IsSelected="True"  IsEnabled="False" SelectionChanged="TRANSTYPESelection" Grid.Column="3" HorizontalAlignment="Left" Margin="155,10,-1,0" VerticalAlignment="Top" Width="145" Height="25" Grid.Row="1">
+					<ComboBoxItem IsSelected="True"></ComboBoxItem>
+					<ComboBoxItem Content="Parameter Download"></ComboBoxItem>
+					<ComboBoxItem Content="Set Settings"></ComboBoxItem>
+					<ComboBoxItem Content="Get Settings"></ComboBoxItem>
+					<ComboBoxItem Content="Running Total"></ComboBoxItem>
+					<ComboBoxItem Content="Print Summary Report"></ComboBoxItem>
+					<ComboBoxItem Content="Check Status"></ComboBoxItem>
+				</ComboBox>
+				<Label x:Name="AdminTransactionL" Content="Admin Trans Type" IsEnabled="false" Grid.Column="3" HorizontalAlignment="Left" Margin="50,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="120"/>
+			</Grid>
+		</GroupBox>
+		<Label Content="Connection Settings" Foreground="#FC860D" Background="#E9E9E9"  FontWeight="Bold" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="4,8,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150" Height="30" Grid.Column="1"/>
+		<Label Content="Buffer Send" FontWeight="Bold" HorizontalAlignment="Left" Margin="0,414,0,0" Grid.Row="1" VerticalAlignment="Top" Width="88" Height="26" Grid.ColumnSpan="2"/>
+		<Label Content="FuncReturn" FontWeight="Bold" HorizontalAlignment="Left" Margin="191,464,0,-14" Grid.Row="1" VerticalAlignment="Top" Width="88" Height="26" Grid.Column="1"/>
+		<TextBox x:Name="BUFFERSEND" IsReadOnly="True" HorizontalAlignment="Left" Height="30" Margin="0,438,-126,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="873" Grid.ColumnSpan="2"/>
+		<Label Content="Buffer Received" FontWeight="Bold" HorizontalAlignment="Left" Margin="0,463,0,-17" Grid.Row="1" VerticalAlignment="Top" Width="110" Grid.ColumnSpan="2"/>
+		<TextBox x:Name="BUFFERRECEIVED" IsReadOnly="True" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left" Height="165" Margin="0,483,-125,-177" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="874" Grid.ColumnSpan="2"/>
+		<Label x:Name="AMOUNTL" Content="Amount" Visibility="Visible" FontWeight="Bold" Grid.Column="1" HorizontalAlignment="Left"  Margin="4,168,0,0" Grid.Row="1" VerticalAlignment="Top" Width="100"/>
+		<Label x:Name="CASHBACKL"  Content="Cash Back" Visibility="Visible" FontWeight="Bold" Grid.Column="1" HorizontalAlignment="Left" Margin="189,168,0,0" Grid.Row="1" VerticalAlignment="Top" Width="98"/>
+		<TextBox x:Name="AMOUNTT" HorizontalContentAlignment="Right" PreviewKeyDown="AMOUNTT_PreviewKeyDown" KeyDown="AMOUNTT_KeyDown" SelectionChanged="AmountTextChanged" Visibility="Visible" IsEnabled="False" PreviewTextInput="AmountValidationTextBox" HorizontalAlignment="Left" Height="25" Margin="1,189,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="140" Grid.Column="1" RenderTransformOrigin="0.522,0.2"/>
+		<TextBox x:Name="CASHBACKT" HorizontalContentAlignment="Right" PreviewKeyDown="CASHBACKT_PreviewKeyDown"  KeyDown="CASHBACKT_KeyDown" SelectionChanged="CashbackTextChanged" Visibility="Visible" IsEnabled="False" Grid.Column="1" PreviewTextInput="CashbackValidationTextBox" HorizontalAlignment="Left" Height="25" Margin="189,189,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="140"/>
+		<GroupBox HorizontalAlignment="Left" Height="200" Margin="0,218,0,0" Grid.Row="1" VerticalAlignment="Top" Width="335" Grid.ColumnSpan="2">
+			<Grid Margin="-5,1,-2,-11">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="52*"/>
+					<ColumnDefinition Width="52*"/>
+					<ColumnDefinition Width="52*"/>
+					<ColumnDefinition Width="61*"/>
+					<ColumnDefinition Width="14"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="100*" />
+					<RowDefinition Height="100*" />
+					<RowDefinition Height="100*" />
+					<RowDefinition Height="100*" />
+				</Grid.RowDefinitions>
+				<Button Content="Clear" Foreground="Black" FontSize="22" Background="#f0a6a1" Grid.Column="3" HorizontalAlignment="Left" Margin="11,7,0,0" VerticalAlignment="Top" Width="89" Height="87" Grid.RowSpan="2" Click="Clear" Grid.ColumnSpan="2"/>
+				<Button x:Name="enter" Content="Enter" IsEnabled="False"  Foreground="Black" FontSize="22" Background="#249E16" Grid.Column="3" HorizontalAlignment="Left" Margin="11,0,0,12" Grid.Row="2" VerticalAlignment="Bottom" Width="89" Grid.RowSpan="2" Height="88" Click="Enter" Grid.ColumnSpan="2"/>
+				<Button Content="1" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Background="#399ce3" Width="70" Height="35" Click="ONE" Grid.RowSpan="2"/>
+				<Button Content="2" FontWeight="Bold" FontSize="18" Grid.Column="1" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Background="#399ce3" Width="70" Height="35" Click="TWO" Grid.RowSpan="2"/>
+				<Button Content="3" FontWeight="Bold" FontSize="18" Grid.Column="2" HorizontalAlignment="Left" Margin="4,4,0,0" Background="#399ce3" VerticalAlignment="Top" Width="70" Height="35" Click="THREE" Grid.RowSpan="2"/>
+				<Button Content="4" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Margin="4,4,0,0" Grid.Row="1" VerticalAlignment="Top"  Background="#399ce3" Width="70" Height="35" Click="FOUR" Grid.RowSpan="2"/>
+				<Button Content="5" FontWeight="Bold" FontSize="18" Grid.Column="1" HorizontalAlignment="Left" Margin="4,4,0,0" Grid.Row="1" Background="#399ce3" VerticalAlignment="Top" Width="70" Height="35" Click="FIVE" Grid.RowSpan="2"/>
+				<Button Content="6" FontWeight="Bold" FontSize="18" Grid.Column="2" HorizontalAlignment="Left" Margin="4,4,0,0" Background="#399ce3" Grid.Row="1" VerticalAlignment="Top" Width="70" Height="35" Click="SIX" Grid.RowSpan="2"/>
+				<Button Content="7" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Margin="4,4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="#399ce3" Width="70" Height="35" Click="SEVEN"/>
+				<Button Content="8" FontWeight="Bold" FontSize="18" Grid.Column="1" HorizontalAlignment="Left" Margin="4,4,0,0" Background="#399ce3" Grid.Row="2" VerticalAlignment="Top" Width="70" Height="35" Click="EIGHT" Grid.RowSpan="2"/>
+				<Button Content="9" FontWeight="Bold" FontSize="18" Grid.Column="2" HorizontalAlignment="Left" Margin="4,4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="#399ce3" Width="70" Height="35" Click="NINE" Grid.RowSpan="2"/>
+				<Button Content="X" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Margin="4,4,0,0" Grid.Row="3" VerticalAlignment="Top" Background="#399ce3" Width="70" Height="35" Click="DELETE"/>
+				<Button Content="0" FontWeight="Bold" FontSize="18" Grid.Column="1" HorizontalAlignment="Left" Margin="4,4,0,-16" Background="#399ce3" Grid.Row="3" VerticalAlignment="Top" Width="70" Height="35" Click="ZERO"/>
+				<Button Content="00" FontWeight="Bold" FontSize="18" Grid.Column="2" HorizontalAlignment="Left" Margin="4,4,0,-16" Background="#399ce3" Grid.Row="3" VerticalAlignment="Top" Width="70" Height="35" Click="DZERO"/>
+			</Grid>
+		</GroupBox>
+		<WebBrowser Grid.Column="1" HorizontalAlignment="Left" Height="535" Margin="944,25,-547,-132" VerticalAlignment="Top" Width="255" Grid.RowSpan="2"/>
+
+
+		<Label x:Name="CashRegisterNumberL" Content="Cash Register Number" Grid.Column="1" HorizontalAlignment="Left" Margin="590,-6,0,0" VerticalAlignment="Top" Width="140" Height="30" Grid.RowSpan="2"/>
+		<TextBox x:Name="CashRegisterNumberT" IsEnabled="false" PreviewTextInput="CashRegisterNumberValidationTextBox" SelectionChanged="CashRegisterNumberTextChanged" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="719,-5,-121,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="160"/>
+		<Label x:Name="BillerIDL" IsEnabled="false"  Content="Biller ID" Grid.Column="1" HorizontalAlignment="Left" Margin="544,174,0,0" Grid.Row="1" VerticalAlignment="Top" Width="50" Height="25"/>
+		<TextBox x:Name="BillerIDT" IsEnabled="false"  PreviewTextInput="BillerIDNumberValidationTextBox" SelectionChanged="BillerIDTextChanged" Grid.Column="1" HorizontalAlignment="Left" Height="20" Margin="599,179,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="100"/>
+		<Label x:Name="BillNumberL" IsEnabled="false" Content="Bill Number" Grid.Column="1" HorizontalAlignment="Left" Margin="699,174,-35,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
+		<TextBox x:Name="BillNumberT" IsEnabled="false"  PreviewTextInput="BillNumberNumberValidationTextBox" SelectionChanged="BillNumberTextChanged" Grid.Column="1" Height="20" Margin="769,179,-123,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+		<Label x:Name="ProgBarL" Content="Connecting..." Visibility="Hidden"  FontSize="22" Grid.Column="1" HorizontalAlignment="Left" Margin="548,199,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+		<ProgressBar x:Name="ProgBar" Visibility="Hidden" IsIndeterminate="False" Grid.Column="1" HorizontalAlignment="Left" Height="25" Margin="339,239,-132,0" Grid.Row="1" VerticalAlignment="Top" Width="550"/>
+		<WebBrowser Name="myBrowser" Grid.Column="1" HorizontalAlignment="Left" Height="615" Margin="896,10,-489,-115" VerticalAlignment="Top" Width="361" Grid.RowSpan="2"/>
+		<Label x:Name="prvsECRNumberL" IsEnabled="false"  Content="Previous ECR Number" HorizontalAlignment="Left" Margin="334,174,0,0" Grid.Row="1" VerticalAlignment="Top" Width="130" Grid.Column="1" Height="25"/>
+		<TextBox x:Name="prvsECRNumberT" IsEnabled="false"  PreviewTextInput="prvsECRNumberValidationTextBox" SelectionChanged="prvsECRNumberTextChanged" Grid.Column="1" HorizontalAlignment="Left" Height="20" Margin="454,179,0,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" Width="90"/>
+		<Label Content="New Transaction"  FontWeight="Bold" FontSize="18" Background="#9a83eb" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Margin="156,83,0,0" Grid.Row="1" VerticalAlignment="Top" Width="202" Height="30"/>
+		<GroupBox x:Name="SetSetting" IsEnabled="false" Foreground="#FC860D" BorderBrush="#E9E9E9" Background="#E9E9E9" Grid.Column="1" HorizontalAlignment="Left" Height="215" Margin="334,219,0,0" Grid.Row="1" VerticalAlignment="Top" Width="220">
+			<Grid Margin="-5,1,-2,-11">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<TextBox x:Name="VendorIDT"  PreviewTextInput="VendorIDNumberValidationTextBox"  SelectionChanged="VendorIDTextChanged" HorizontalAlignment="Left" Height="20" Margin="119,19,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="90" />
+				<Label x:Name="VendorIDL" Content="Vendor ID" HorizontalAlignment="Left" Margin="51,14,0,0" VerticalAlignment="Top" Width="63" Height="25"/>
+				<Label x:Name="VendorTerminaltypeL"   Content="Vendor Terminal type" HorizontalAlignment="Left" Margin="-1,54,0,0" VerticalAlignment="Top" Width="125" Height="27"/>
+				<TextBox x:Name="VendorTerminaltypeT"   PreviewTextInput="VendorTerminaltypeNumberValidationTextBox" SelectionChanged="VendorTerminaltypeTextChanged" HorizontalAlignment="Left" Height="20" Margin="119,59,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="90"/>
+
+				<Label x:Name="TRSMIDL" Content="TRSM ID" HorizontalAlignment="Left" Margin="59,94,0,0" VerticalAlignment="Top" Width="65"/>
+				<TextBox x:Name="TRSMIDT" PreviewTextInput="TRSMIDNumberValidationTextBox"  SelectionChanged="TRSMIDTextChanged" HorizontalAlignment="Left" Height="20" Margin="119,99,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="90" />
+				<Label x:Name="VendorKeyIndexL"  Content="Vendor Key Index" HorizontalAlignment="Left" Margin="14,133,0,0" VerticalAlignment="Top" Width="110"/>
+				<TextBox  x:Name="VendorKeyIndexT"   PreviewTextInput="VendorKeyIndexNumberValidationTextBox" SelectionChanged="VendorKeyIndexTectChanged" HorizontalAlignment="Left" Height="20" Margin="119,139,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="90"/>
+				<Label x:Name="SAMAKeyIndexL" Content="SAMA Key Index" HorizontalAlignment="Left" Margin="19,174,0,0" VerticalAlignment="Top" Width="100" Height="25" RenderTransformOrigin="0.5,0.5"/>
+				<TextBox  x:Name="SAMAKeyIndexT"  PreviewTextInput="SAMAKeyIndexNumberValidationTextBox" SelectionChanged="SAMAKeyIndexTextChanged" Height="20" Margin="119,179,1,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+
+			</Grid>
+		</GroupBox>
+		<CheckBox  x:Name="chkfpCapture" IsEnabled="false" Content="Final/Partial Capture" Grid.Column="1" HorizontalAlignment="Left" Margin="169,0,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked"/>
+		<CheckBox Content="Log Option" x:Name="isEnabledlog" Grid.Column="1" HorizontalAlignment="Left" Margin="569,269,0,0" Grid.Row="1"  Unchecked="isEnabledlog_Unchecked_1"  VerticalAlignment="Top"  Checked="CheckBox_Checked_1" FontFamily="Bodoni MT Black" Width="110" Background="#FF42A608" FontSize="14"/>
+		<Label Content="Path"  Grid.Column="1" HorizontalAlignment="Left" Margin="569,290,0,0" Grid.Row="1" VerticalAlignment="Top" Width="47" FontFamily="Arial Black"/>
+		<Label Content="No.of Days To Retain" Grid.Column="1" HorizontalAlignment="Left" Margin="569,319,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150" FontFamily="Arial Black"/>
+		<Label Content="Log Level" Grid.Column="1" HorizontalAlignment="Left" Margin="569,348,0,0" Grid.Row="1" VerticalAlignment="Top" Width="76" FontFamily="Arial Black"/>
+		<TextBox Grid.Column="1" HorizontalAlignment="Left" x:Name="Filepath" IsEnabled="False" Height="24" Margin="728,290,-68,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="117" FontFamily="Arial Black"/>
+		<TextBox Grid.Column="1" IsEnabled="False" x:Name="NoDay" HorizontalAlignment="Left" Height="24" Margin="728,319,-67,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="128" FontFamily="Arial Black" RenderTransformOrigin="0.479,1.375"/>
+		<Button Content="..." Grid.Column="1" IsEnabled="False" x:Name="broswing" HorizontalAlignment="Left" Margin="823,290,-65,0" Grid.Row="1" VerticalAlignment="Top" Width="33" Height="24" Click="Button_Click_5" IsDefault="True" FontSize="14"/>
+		<ComboBox Grid.Column="1" IsEnabled="True" x:Name="LogLevel" HorizontalAlignment="Left" Height="24" Margin="728,348,-61,0" Grid.Row="1" VerticalAlignment="Top" Width="128" FontFamily="Arial Black">
+			<ComboBoxItem Content="error"></ComboBoxItem>
+			<ComboBoxItem Content="debug"></ComboBoxItem>
+			<ComboBoxItem Content="information"></ComboBoxItem>
+		</ComboBox>
+		<Button Content="Save Log Details" Grid.Column="1" HorizontalAlignment="Left" Margin="641,398,-10,0" Grid.Row="1" VerticalAlignment="Top" Width="166" FontFamily="Arial Black" FontSize="14" Background="#FF238905" Click="Button_Click"/>
+	</Grid>
+</Window>
+

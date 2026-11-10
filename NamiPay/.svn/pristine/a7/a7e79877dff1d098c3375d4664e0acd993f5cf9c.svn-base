@@ -1,0 +1,387 @@
+using System;
+using System.Globalization;
+using System.IO.Ports;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+
+namespace SkybandWinFormsTester
+{
+    public partial class MainForm : Form
+    {
+        private bool connected;
+        private bool busy;
+        private SerialPort serial = new SerialPort();
+        private static bool transactionInProgress;
+
+        // The protocol packing/parsing functions are exported by the vendor's native ECR.dll.
+        // All managed transaction logic is kept in this form; no CoreSkybandECR project is used.
+        [DllImport("ECR.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void pack([MarshalAs(UnmanagedType.LPStr)] string inputReqData,
+            int transactionType, [MarshalAs(UnmanagedType.LPStr)] string signature, byte[] ecrBuffer);
+
+        [DllImport("ECR.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void parse(byte[] responseData, byte[] responseFields);
+
+        public MainForm()
+        {
+            InitializeComponent();
+            RefreshPorts();
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e) => RefreshPorts();
+
+        private async void btnConnect_Click(object sender, EventArgs e)
+        {
+            await TestConnectionAsync();
+        }
+
+        private async void btnPurchase_Click(object sender, EventArgs e)
+        {
+            await PurchaseAsync();
+        }
+
+        private void RefreshPorts()
+        {
+            string previous = cmbPort.SelectedItem == null ? null : cmbPort.SelectedItem.ToString();
+            cmbPort.Items.Clear();
+            string[] ports = SerialPort.GetPortNames().OrderBy(port => port).ToArray();
+            cmbPort.Items.AddRange(ports);
+            if (previous != null && ports.Contains(previous)) cmbPort.SelectedItem = previous;
+            else if (ports.Length > 0) cmbPort.SelectedIndex = 0;
+            Log("Detected COM ports: " + (ports.Length == 0 ? "(none)" : string.Join(", ", ports)));
+        }
+
+        private async Task TestConnectionAsync()
+        {
+            if (busy) return;
+            if (cmbPort.SelectedItem == null)
+            {
+                MessageBox.Show("Connect the terminal by USB and select its COM port.");
+                return;
+            }
+
+            int portNumber = int.Parse(cmbPort.SelectedItem.ToString().Substring(3));
+            string baud = cmbBaud.Text;
+            string parity = cmbParity.Text;
+            int dataBits = int.Parse(cmbDataBits.Text);
+            int stopBits = GetStopBits();
+
+            SetBusy(true);
+            lblConnection.Text = "Testing...";
+            lblConnection.ForeColor = System.Drawing.Color.DarkOrange;
+            Log("Opening " + cmbPort.Text + " (" + baud + ", " + parity + ", " + dataBits + ", " + cmbStopBits.Text + ")...");
+            try
+            {
+                int result = await Task.Run(() => TestComConnection(portNumber, baud, parity, dataBits, stopBits));
+                connected = result == 0;
+                lblConnection.Text = connected ? "COM port opened successfully" : "Could not open COM port";
+                lblConnection.ForeColor = connected ? System.Drawing.Color.ForestGreen : System.Drawing.Color.Firebrick;
+                Log(connected
+                    ? "PASS: COM port opened successfully. Note: this tests Windows serial-port access, not terminal protocol response."
+                    : "FAIL: Could not open COM port. Check port, cable, driver, and whether another application is using it.");
+            }
+            catch (Exception ex)
+            {
+                connected = false;
+                lblConnection.Text = "Connection test failed";
+                lblConnection.ForeColor = System.Drawing.Color.Firebrick;
+                Log("ERROR: " + ex.Message);
+            }
+            finally { SetBusy(false); }
+        }
+
+        private async Task PurchaseAsync()
+        {
+            if (busy) return;
+            if (cmbPort.SelectedItem == null)
+            {
+                MessageBox.Show("Select a COM port and test the connection first.");
+                return;
+            }
+
+            decimal amount;
+            if (!decimal.TryParse(txtAmount.Text.Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out amount) || amount <= 0)
+            {
+                MessageBox.Show("Enter a valid amount greater than zero, e.g. 1.00.");
+                return;
+            }
+
+            string cashRegister = txtCashRegister.Text.Trim();
+            string terminalId = txtTerminalId.Text.Trim();
+            string ecrRef = txtEcrRef.Text.Trim();
+            if (cashRegister.Length != 8 || !cashRegister.All(char.IsDigit))
+            {
+                MessageBox.Show("Cash register number must be exactly 8 digits.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(terminalId))
+            {
+                MessageBox.Show("Enter the Terminal ID. It is used to calculate the ECR signature.");
+                return;
+            }
+            if (ecrRef.Length != 6 || !ecrRef.All(char.IsDigit))
+            {
+                MessageBox.Show("ECR reference must be exactly 6 digits.");
+                return;
+            }
+
+            DialogResult confirm = MessageBox.Show(
+                "This sends a PURCHASE request to the Skyband terminal.\r\nAmount: " + amount.ToString("0.00", CultureInfo.InvariantCulture) +
+                "\r\nCOM port: " + cmbPort.Text + "\r\nContinue?",
+                "Confirm purchase", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirm != DialogResult.Yes) return;
+
+            int portNumber = int.Parse(cmbPort.SelectedItem.ToString().Substring(3));
+            string baud = cmbBaud.Text;
+            string parity = cmbParity.Text;
+            int dataBits = int.Parse(cmbDataBits.Text);
+            int stopBits = GetStopBits();
+            string ecrRefForRequest = cashRegister + ecrRef;
+            string amountMinor = decimal.ToInt64(decimal.Round(amount * 100m, 0, MidpointRounding.AwayFromZero)).ToString(CultureInfo.InvariantCulture);
+            string dateTime = DateTime.Now.ToString("ddMMyyHHmmss", CultureInfo.InvariantCulture);
+            string request = dateTime + ";" + amountMinor + ";0;" + ecrRefForRequest + "!";
+            string signatureInput = ecrRef + terminalId;
+
+            SetBusy(true);
+            Log("Sending purchase request. Request data: " + request);
+            Log("Waiting for terminal response; follow prompts on the payment terminal.");
+            try
+            {
+                string signature = ComputeSha256Hash(signatureInput);
+                string response = null;
+                int result = await Task.Run(() => DoComTransaction(
+                    portNumber, baud, parity, dataBits, stopBits, request, 0, signature, out response));
+
+                Log("Transaction return code: " + result);
+                Log("Terminal response: " + (string.IsNullOrWhiteSpace(response) ? "(empty)" : response));
+                if (result == 0)
+                    MessageBox.Show("The class library completed the transaction call. Check the terminal response below to confirm the actual payment outcome.", "Purchase response", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                else
+                    MessageBox.Show("The transaction call did not complete successfully. See output for details.", "Purchase failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                Log("PURCHASE ERROR: " + ex);
+                MessageBox.Show(ex.Message, "Purchase error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally { SetBusy(false); }
+        }
+
+        private int TestComConnection(int port, string baudRate, string parity, int dataBits, int stopBits)
+        {
+            try
+            {
+                CloseSerialPort();
+                serial = new SerialPort("COM" + port, int.Parse(baudRate),
+                    (Parity)Enum.Parse(typeof(Parity), parity), dataBits,
+                    (StopBits)Enum.Parse(typeof(StopBits), stopBits.ToString()));
+                serial.ReadTimeout = 2500;
+                serial.WriteTimeout = 1000;
+                serial.Open();
+                serial.Close();
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log("COM open test error: " + ex.Message);
+                CloseSerialPort();
+                return 1;
+            }
+        }
+
+        private int DoComTransaction(int port, string baudRate, string parity, int dataBits,
+            int stopBits, string request, int transactionType, string signature, out string response)
+        {
+            response = string.Empty;
+            int result = 1;
+            byte[] terminalResponse = new byte[50000];
+            try
+            {
+                transactionInProgress = true;
+                CloseSerialPort();
+                serial = new SerialPort("COM" + port, int.Parse(baudRate),
+                    (Parity)Enum.Parse(typeof(Parity), parity), dataBits,
+                    (StopBits)Enum.Parse(typeof(StopBits), stopBits.ToString()));
+                serial.ReadTimeout = 2500;
+                serial.WriteTimeout = 1000;
+                serial.Open();
+
+                byte[] packed = new byte[150];
+                pack(request, transactionType, signature, packed);
+                packed = TrimTrailingBytes(packed, 0);
+                if (packed.Length == 0)
+                    throw new InvalidOperationException("ECR.dll returned an empty packed request.");
+
+                serial.DiscardOutBuffer();
+                serial.DiscardInBuffer();
+                serial.WriteTimeout = 90000;
+                serial.Write(packed, 0, packed.Length);
+                Log("Purchase request sent to COM" + port + ". Waiting for terminal response...");
+
+                string[] requestParts = BitConverter.ToString(packed).Replace("-", "").ToLowerInvariant().Split(new[] { "fc" }, StringSplitOptions.None);
+                string responseCode = requestParts.Length > 1 ? requestParts[1] : string.Empty;
+                serial.ReadTimeout = GetResponseTimeout(responseCode);
+                terminalResponse = SerialReceive();
+
+                byte[] parsed = new byte[50000];
+                parse(terminalResponse, parsed);
+                parsed = TrimTrailingBytes(parsed, 0);
+                string hex = BitConverter.ToString(parsed).Replace("-", "").ToLowerInvariant();
+                string[] fields = hex.Split(new[] { "3b" }, StringSplitOptions.None);
+                if (fields.Length < 2)
+                    throw new InvalidOperationException("The terminal response could not be parsed.");
+
+                string[] responseFields;
+                if (fields[1] == "4332" && fields.Length > 15)
+                {
+                    responseFields = new string[fields.Length];
+                    int j = 1;
+                    for (int i = 5; i < fields.Length - 3 && j < responseFields.Length; i++, j++)
+                        responseFields[j] = ConvertHex(fields[i]);
+                }
+                else
+                {
+                    responseFields = new string[fields.Length];
+                    for (int i = 0; i < fields.Length; i++)
+                        responseFields[i] = ConvertHex(fields[i]);
+                }
+
+                if (responseFields.Length > 1)
+                    responseFields[1] = CheckingTransactionType(responseFields[1]);
+                response = ConvertStringArrayToString(responseFields);
+                result = 0;
+            }
+            catch (Exception ex)
+            {
+                Log("COM transaction error: " + ex.Message);
+                result = 1;
+            }
+            finally
+            {
+                transactionInProgress = false;
+                CloseSerialPort();
+            }
+            return result;
+        }
+
+        private byte[] SerialReceive()
+        {
+            byte[] buffer = new byte[50000];
+            int count = 0;
+            // The supplied protocol wrapper waits for at least five response bytes.
+            while (count < 5 && count < buffer.Length)
+                count += serial.Read(buffer, count, buffer.Length - count);
+
+            Thread.Sleep(1000);
+            // Include any additional bytes already waiting after the initial response.
+            while (serial.BytesToRead > 0 && count < buffer.Length)
+                count += serial.Read(buffer, count, buffer.Length - count);
+
+            byte[] received = new byte[count];
+            Array.Copy(buffer, received, count);
+            return received;
+        }
+
+        private int GetResponseTimeout(string responseCode)
+        {
+            switch (responseCode)
+            {
+                case "4232": return 90000;
+                case "4130":
+                case "4236":
+                case "4237": return 10000;
+                case "4331": return 180000;
+                case "4333": return 5000;
+                default: return 50000;
+            }
+        }
+
+        private void CloseSerialPort()
+        {
+            try { if (serial != null) { if (serial.IsOpen) serial.Close(); serial.Dispose(); } }
+            catch { /* Best-effort cleanup. */ }
+        }
+
+        private static byte[] TrimTrailingBytes(byte[] buffer, byte trimValue)
+        {
+            int length = buffer.Length;
+            while (length > 0 && buffer[length - 1] == trimValue) length--;
+            byte[] trimmed = new byte[length];
+            Array.Copy(buffer, trimmed, length);
+            return trimmed;
+        }
+
+        private static string ConvertHex(string hexString)
+        {
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i + 1 < hexString.Length; i += 2)
+                result.Append((char)Convert.ToInt32(hexString.Substring(i, 2), 16));
+            return result.ToString();
+        }
+
+        private static string ComputeSha256Hash(string rawData)
+        {
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                StringBuilder result = new StringBuilder();
+                foreach (byte value in hash) result.Append(value.ToString("x2"));
+                return result.ToString();
+            }
+        }
+
+        private static string ConvertStringArrayToString(string[] values)
+        {
+            StringBuilder result = new StringBuilder();
+            foreach (string value in values) { result.Append(value); result.Append(';'); }
+            return result.ToString();
+        }
+
+        private static string CheckingTransactionType(string command)
+        {
+            switch (command)
+            {
+                case "A0": return "17"; case "A1": return "0"; case "A2": return "1";
+                case "A3": return "8"; case "A4": return "3"; case "A5": return "9";
+                case "A6": return "2"; case "A7": return "4"; case "A8": return "5";
+                case "A9": return "6"; case "B1": return "10"; case "B2": return "11";
+                case "B3": return "12"; case "B4": return "13"; case "B6": return "18";
+                case "B7": return "19"; case "B8": return "20"; case "B9": return "21";
+                case "C1": return "22"; case "C2": return "23"; case "C3": return "24";
+                default: return "50";
+            }
+        }
+
+        private int GetStopBits()
+        {
+            return cmbStopBits.SelectedItem.ToString() == "Two" ? 2 :
+                   cmbStopBits.SelectedItem.ToString() == "OnePointFive" ? 3 : 1;
+        }
+
+        private void SetBusy(bool value)
+        {
+            busy = value;
+            btnConnect.Enabled = !value;
+            btnRefresh.Enabled = !value;
+            btnPurchase.Enabled = !value;
+        }
+
+        private void Log(string message)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string>(Log), message);
+                return;
+            }
+            txtLog.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + message + Environment.NewLine);
+            txtLog.SelectionStart = txtLog.TextLength;
+            txtLog.ScrollToCaret();
+        }
+    }
+}

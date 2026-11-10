@@ -225,7 +225,7 @@ namespace CDLL.Payments.Terminal
 
             // EN: Release the gate only when the DLL really returns: it can outlive the watchdog below.
             // AR: يُحرَّر القفل فقط عندما تعود المكتبة فعلاً، لأنها قد تستمر بعد انتهاء المراقب أدناه.
-            call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
+            2  call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
 
             Task finished = await Task.WhenAny(call, Task.Delay(_timeout)).ConfigureAwait(false);
             result.DurationMs = stopwatch.ElapsedMilliseconds;
@@ -254,11 +254,26 @@ namespace CDLL.Payments.Terminal
             if (readFields != null)
                 readFields();
 
-            result.Outcome = _classifier.Classify(result.Operation, result.ReturnCode.Value, result.ResponseCode);
-            if (result.Outcome == TransactionOutcome.CancelledOrTimeout && result.ErrorMessage == null)
-                result.ErrorMessage = "Cancelled on the terminal, or no card was presented in time (return code 8). Check the terminal screen; use Repeat last if unsure. / " +
-                                      "أُلغيت العملية على الجهاز أو لم تُقدَّم البطاقة في الوقت المحدد (رمز 8). راجع شاشة الجهاز، واستخدم إعادة آخر عملية عند الشك.";
+            result.Outcome = _classifier.Classify(result.Operation, result.ReturnCode.Value, result.ResponseCode, result.DurationMs);
+            if (result.ReturnCode == OutcomeClassifier.CancelledOrTimeoutReturnCode && result.ErrorMessage == null)
+                result.ErrorMessage = CardStoppedMessage(result);
             return result;
+        }
+
+        /// <summary>
+        /// EN: Message for return code 8, by outcome (the duration decided Timeout vs Cancelled).
+        /// AR: رسالة رمز الإرجاع 8 حسب النتيجة (المدة حددت انتهاء المهلة أو الإلغاء).
+        /// </summary>
+        private string CardStoppedMessage(TerminalResult r)
+        {
+            string seconds = (r.DurationMs / 1000.0).ToString("0.0", CultureInfo.InvariantCulture);
+            if (r.Outcome == TransactionOutcome.Timeout)
+                return "No card was presented in time: the terminal stopped after " + seconds + " s (return code 8). / " +
+                       "لم تُقدَّم البطاقة في الوقت المحدد: أوقف الجهاز العملية بعد " + seconds + " ثانية (رمز 8).";
+            if (r.Outcome == TransactionOutcome.Cancelled)
+                return "Cancelled on the terminal after " + seconds + " s (return code 8). / أُلغيت العملية على الجهاز بعد " + seconds + " ثانية (رمز 8).";
+            return "Cancelled on the terminal, or no card was presented in time (return code 8). Check the terminal screen; use Repeat last if unsure. / " +
+                   "أُلغيت العملية على الجهاز أو لم تُقدَّم البطاقة في الوقت المحدد (رمز 8). راجع شاشة الجهاز، واستخدم إعادة آخر عملية عند الشك.";
         }
 
         private static TerminalResult NewResult(TerminalOperation operation, string request)
