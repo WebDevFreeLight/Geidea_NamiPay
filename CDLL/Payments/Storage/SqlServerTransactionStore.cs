@@ -56,5 +56,15 @@ namespace CDLL.Payments.Storage
             return "IF NOT EXISTS (SELECT 1 FROM " + QuoteTable(schema.Table) + " WHERE " + schema.Key + " = @" + schema.Key + ") " +
                    "INSERT INTO " + QuoteTable(schema.Table) + " (" + columns + ") VALUES (" + values + ")";
         }
+
+        protected override string ColumnNamesSql(string table)
+        {
+            return "SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo." + table + "')";
+        }
+
+        protected override string AddColumnSql(string table, string columnDefinition)
+        {
+            return "ALTER TABLE " + QuoteTable(table) + " ADD " + columnDefinition;
+        }
     }
 }

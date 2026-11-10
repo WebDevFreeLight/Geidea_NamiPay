@@ -59,5 +59,15 @@ namespace CDLL.Payments.Storage
         {
             return "INSERT OR IGNORE INTO " + QuoteTable(schema.Table) + " (" + columns + ") VALUES (" + values + ")";
         }
+
+        protected override string ColumnNamesSql(string table)
+        {
+            return "SELECT name FROM pragma_table_info('" + table + "')";
+        }
+
+        protected override string AddColumnSql(string table, string columnDefinition)
+        {
+            return "ALTER TABLE " + QuoteTable(table) + " ADD COLUMN " + columnDefinition;
+        }
     }
 }

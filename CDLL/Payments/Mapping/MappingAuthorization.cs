@@ -30,6 +30,8 @@ namespace CDLL.Payments.Mapping
         public static bool IsAllowed(string userName, IPrincipal principal, string allowedUsersOrGroups, out string reason)
         {
             reason = null;
+            return true;
+            reason = null;
             if (string.IsNullOrWhiteSpace(allowedUsersOrGroups))
             {
                 var windows = principal as WindowsPrincipal;

@@ -13,6 +13,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Principal;
@@ -21,6 +22,14 @@ namespace CDLL.Payments
 {
     /// <summary>EN: How the PC talks to the terminal.  AR: طريقة اتصال الحاسوب بالجهاز.</summary>
     public enum TerminalTransport { Com, Tcp }
+
+    /// <summary>
+    /// EN: Which payment company / ECR protocol the terminal uses:
+    ///       Geidea  = madaapi_v1_9.dll / madaapi_v1_8.dll (PAX A920Pro tested on COM8),
+    ///       NamiPay = SkyBand ECR protocol (ECR.dll pack/parse, from the NamiPay project).
+    /// AR: الشركة / بروتوكول ECR الذي يستخدمه الجهاز: Geidea = مكتبات madaapi، و NamiPay = بروتوكول SkyBand (ECR.dll).
+    /// </summary>
+    public enum TerminalProvider { Geidea, NamiPay }
 
     /// <summary>EN: The operation that was run.  AR: العملية التي تم تنفيذها.</summary>
     public enum TerminalOperation { CheckStatus, Purchase, Refund, RepeatLast, Reconciliation, MerchantInfo, TerminalId, CashPayment }
@@ -59,6 +68,10 @@ namespace CDLL.Payments
         public int StopBits { get; set; }
         public string TcpIp { get; set; }
         public string TcpPort { get; set; }
+        public TerminalProvider Provider { get; set; }
+
+        /// <summary>EN: NamiPay only: the 8-digit cash register number registered on the terminal.  AR: لـ NamiPay فقط: رقم الصندوق (8 أرقام).</summary>
+        public string CashRegisterNumber { get; set; }
 
         /// <summary>EN: Short text for logs, e.g. "COM8 38400 baud..." or "192.168.1.25:6100".  AR: نص مختصر للسجل.</summary>
         public string Describe()
@@ -93,6 +106,12 @@ namespace CDLL.Payments
 
             return null;
         }
+
+        /// <summary>EN: NamiPay needs exactly 8 digits.  AR: NamiPay يحتاج 8 أرقام بالضبط.</summary>
+        public static bool IsValidCashRegister(string value)
+        {
+            return value != null && value.Length == 8 && value.All(c => c >= '0' && c <= '9');
+        }
     }
 
     /// <summary>
@@ -117,12 +136,19 @@ namespace CDLL.Payments
         public DateTime UpdatedAtUtc { get; set; }
         public string UpdatedBy { get; set; }
 
+        /// <summary>EN: Geidea or NamiPay (older rows without it load as Geidea).  AR: Geidea أو NamiPay (السجلات القديمة تُقرأ كـ Geidea).</summary>
+        public TerminalProvider Provider { get; set; }
+
+        /// <summary>EN: NamiPay only: 8-digit cash register number.  AR: لـ NamiPay فقط: رقم الصندوق 8 أرقام.</summary>
+        public string CashRegisterNumber { get; set; }
+
         public TerminalConnection ToConnection()
         {
             return new TerminalConnection
             {
                 Transport = Transport, ComPort = ComPort, BaudRate = BaudRate, Parity = Parity,
-                DataBits = DataBits, StopBits = StopBits, TcpIp = TcpIp, TcpPort = TcpPort
+                DataBits = DataBits, StopBits = StopBits, TcpIp = TcpIp, TcpPort = TcpPort,
+                Provider = Provider, CashRegisterNumber = CashRegisterNumber
             };
         }
     }
@@ -173,6 +199,10 @@ namespace CDLL.Payments
         public string MerchantAddressEn { get; set; }
         public string MerchantAddressAr { get; set; }
         public string RawResponse { get; set; }
+        public TerminalProvider Provider { get; set; }
+
+        /// <summary>EN: Text the terminal sent with the result, e.g. "APPROVED" (NamiPay).  AR: النص الذي أرسله الجهاز مع النتيجة.</summary>
+        public string ResponseMessage { get; set; }
 
         public bool IsSuccess
         {
@@ -250,6 +280,12 @@ namespace CDLL.Payments
         public string MerchantAddressAr { get; set; }
         public string RawResponse { get; set; }
 
+        /// <summary>EN: Geidea or NamiPay (older rows without it load as Geidea).  AR: Geidea أو NamiPay.</summary>
+        public TerminalProvider Provider { get; set; }
+
+        /// <summary>EN: Text the terminal sent with the result, e.g. "APPROVED" (NamiPay).  AR: النص الذي أرسله الجهاز مع النتيجة.</summary>
+        public string ResponseMessage { get; set; }
+
         /// <summary>EN: Builds the row for a terminal operation.  AR: يبني السجل لعملية على الجهاز.</summary>
         public static PaymentTransactionRecord FromResult(TerminalResult r, PaymentContext context)
         {
@@ -270,7 +306,7 @@ namespace CDLL.Payments
                 TerminalTotal = r.TerminalTotal, HostTotal = r.HostTotal,
                 MerchantNameEn = r.MerchantNameEn, MerchantNameAr = r.MerchantNameAr,
                 MerchantAddressEn = r.MerchantAddressEn, MerchantAddressAr = r.MerchantAddressAr,
-                RawResponse = r.RawResponse
+                RawResponse = r.RawResponse, Provider = r.Provider, ResponseMessage = r.ResponseMessage
             };
         }
 

@@ -43,6 +43,11 @@ namespace CDLL.Payments.Storage
         /// <summary>EN: INSERT that does nothing when the key already exists.  AR: إدراج لا يفعل شيئاً إذا كان المفتاح موجوداً.</summary>
         private protected abstract string InsertIfMissingSql(TableSchema schema, string columns, string values);
 
+        /// <summary>EN: Query returning the column names of a table (first column).  AR: استعلام يُعيد أسماء أعمدة الجدول.</summary>
+        protected abstract string ColumnNamesSql(string table);
+
+        protected abstract string AddColumnSql(string table, string columnDefinition);
+
         // =============================================================================
         // EN: ITransactionStore
         // =============================================================================
@@ -55,6 +60,7 @@ namespace CDLL.Payments.Storage
                 {
                     string columns = string.Join(", ", schema.Columns.Select(c => c.Name + " " + schema.SqlType(c, IsSqlServer)));
                     Execute(connection, null, CreateTableIfMissingSql(schema, columns));
+                    AddMissingColumns(connection, schema);
                 }
                 Execute(connection, null, CreateIndexIfMissingSql(Transactions.Table, "IX_PaymentTransactions_CreatedAtUtc", "CreatedAtUtc"));
                 Execute(connection, null, CreateIndexIfMissingSql(Transactions.Table, "IX_PaymentTransactions_PatientMrn", "PatientMrn"));
@@ -122,6 +128,29 @@ namespace CDLL.Payments.Storage
         // =============================================================================
         // EN: HELPERS / دوال مساعدة
         // =============================================================================
+
+        /// <summary>
+        /// EN: Upgrades a table made by an older version (e.g. before Provider / ResponseMessage existed): every missing
+        ///     column is added as NULLable; NULL reads back as the property's default (Provider = Geidea).
+        /// AR: يرقّي جدولاً أنشأته نسخة أقدم: كل عمود ناقص يُضاف ويقبل NULL، و NULL يُقرأ كقيمة افتراضية (Provider = Geidea).
+        /// </summary>
+        private void AddMissingColumns(DbConnection connection, TableSchema schema)
+        {
+            var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = ColumnNamesSql(schema.Table);
+                using (DbDataReader reader = command.ExecuteReader())
+                    while (reader.Read())
+                        existing.Add(Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture));
+            }
+
+            foreach (PropertyInfo column in schema.Columns.Where(c => !existing.Contains(c.Name)))
+            {
+                string type = schema.SqlType(column, IsSqlServer).Replace(" NOT NULL", " NULL");
+                Execute(connection, null, AddColumnSql(schema.Table, column.Name + " " + type));
+            }
+        }
 
         private void Insert(TableSchema schema, object record)
         {

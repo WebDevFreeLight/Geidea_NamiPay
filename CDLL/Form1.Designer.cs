@@ -70,6 +70,8 @@ namespace CDLL
             this.lblComPort = new System.Windows.Forms.Label();
             this.cmbComPort = new System.Windows.Forms.ComboBox();
             this.btnRefreshPorts = new System.Windows.Forms.Button();
+            this.lblProvider = new System.Windows.Forms.Label();
+            this.cmbProvider = new System.Windows.Forms.ComboBox();
             this.lblBaudRate = new System.Windows.Forms.Label();
             this.numBaudRate = new System.Windows.Forms.NumericUpDown();
             this.lblParity = new System.Windows.Forms.Label();
@@ -290,9 +292,11 @@ namespace CDLL
             this.grpConnection.Controls.Add(this.txtIp);
             this.grpConnection.Controls.Add(this.lblTcpPort);
             this.grpConnection.Controls.Add(this.txtTcpPort);
+            this.grpConnection.Controls.Add(this.lblProvider);
+            this.grpConnection.Controls.Add(this.cmbProvider);
             this.grpConnection.Location = new System.Drawing.Point(345, 12);
             this.grpConnection.Name = "grpConnection";
-            this.grpConnection.Size = new System.Drawing.Size(335, 250);
+            this.grpConnection.Size = new System.Drawing.Size(335, 280);
             this.grpConnection.TabIndex = 16;
             this.grpConnection.TabStop = false;
             this.grpConnection.Text = "Connection settings / إعدادات الاتصال";
@@ -470,7 +474,28 @@ namespace CDLL
             this.txtTcpPort.Size = new System.Drawing.Size(115, 27);
             this.txtTcpPort.TabIndex = 13;
             this.txtTcpPort.Text = "6100";
-            // 
+            //
+            // lblProvider
+            //
+            this.lblProvider.AutoSize = true;
+            this.lblProvider.Location = new System.Drawing.Point(10, 242);
+            this.lblProvider.Name = "lblProvider";
+            this.lblProvider.Size = new System.Drawing.Size(141, 20);
+            this.lblProvider.TabIndex = 15;
+            this.lblProvider.Text = "Provider / المزوّد:";
+            //
+            // cmbProvider
+            //
+            this.cmbProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProvider.FormattingEnabled = true;
+            this.cmbProvider.Items.AddRange(new object[] {
+            "Geidea",
+            "NamiPay"});
+            this.cmbProvider.Location = new System.Drawing.Point(205, 238);
+            this.cmbProvider.Name = "cmbProvider";
+            this.cmbProvider.Size = new System.Drawing.Size(115, 28);
+            this.cmbProvider.TabIndex = 16;
+            //
             // grpTransaction
             // 
             this.grpTransaction.Controls.Add(this.lblPurchaseAmount);
@@ -481,7 +506,7 @@ namespace CDLL
             this.grpTransaction.Controls.Add(this.txtOriginalRrn);
             this.grpTransaction.Controls.Add(this.lblOriginalDate);
             this.grpTransaction.Controls.Add(this.dtpOriginalDate);
-            this.grpTransaction.Location = new System.Drawing.Point(345, 272);
+            this.grpTransaction.Location = new System.Drawing.Point(345, 302);
             this.grpTransaction.Name = "grpTransaction";
             this.grpTransaction.Size = new System.Drawing.Size(335, 155);
             this.grpTransaction.TabIndex = 17;
@@ -598,7 +623,7 @@ namespace CDLL
             this.Trans_richTextBox.Location = new System.Drawing.Point(695, 12);
             this.Trans_richTextBox.Name = "Trans_richTextBox";
             this.Trans_richTextBox.ReadOnly = true;
-            this.Trans_richTextBox.Size = new System.Drawing.Size(393, 520);
+            this.Trans_richTextBox.Size = new System.Drawing.Size(393, 550);
             this.Trans_richTextBox.TabIndex = 18;
             this.Trans_richTextBox.Text = "";
             //
@@ -608,7 +633,7 @@ namespace CDLL
             this.grpBilling.Controls.Add(this.txtPatientMrn);
             this.grpBilling.Controls.Add(this.lblInvoiceNo);
             this.grpBilling.Controls.Add(this.txtInvoiceNo);
-            this.grpBilling.Location = new System.Drawing.Point(345, 437);
+            this.grpBilling.Location = new System.Drawing.Point(345, 467);
             this.grpBilling.Name = "grpBilling";
             this.grpBilling.Size = new System.Drawing.Size(335, 95);
             this.grpBilling.TabIndex = 19;
@@ -701,7 +726,7 @@ namespace CDLL
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1100, 545);
+            this.ClientSize = new System.Drawing.Size(1100, 575);
             this.Controls.Add(this.lblUsb);
             this.Controls.Add(this.lblTcp);
             this.Controls.Add(this.btnStatusUsb);
@@ -728,7 +753,7 @@ namespace CDLL
             this.Controls.Add(this.lblTerminal);
             this.Controls.Add(this.lblStorage);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.MinimumSize = new System.Drawing.Size(1116, 584);
+            this.MinimumSize = new System.Drawing.Size(1116, 614);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CDLL - mada Terminal / جهاز مدى";
@@ -773,6 +798,8 @@ namespace CDLL
         private System.Windows.Forms.Label lblComPort;
         private System.Windows.Forms.ComboBox cmbComPort;
         private System.Windows.Forms.Button btnRefreshPorts;
+        private System.Windows.Forms.Label lblProvider;
+        private System.Windows.Forms.ComboBox cmbProvider;
         private System.Windows.Forms.Label lblBaudRate;
         private System.Windows.Forms.NumericUpDown numBaudRate;
         private System.Windows.Forms.Label lblParity;

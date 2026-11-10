@@ -5,12 +5,14 @@
 //                 another workstation, it asks to REMOVE that old mapping (the terminal moved).
 //       - Test:   runs Check status with the settings on screen (recorded like every other operation).
 //       - Remove: deletes the selected workstation's mapping.
+//       - Detect: finds out whether a Geidea or a NamiPay terminal is on the port (fills Provider).
 //     All storage and terminal work runs on background threads (PaymentStorage / IPaymentTerminalService).
 // AR: شاشة ربط الأجهزة: تربط جهاز SPAN / مدى بحاسوب، مثلاً عند استبدال الحاسوب.
 //     تُفتح من Form1 ("ربط الجهاز")، وفقط المستخدمون المسموح لهم في MappingAuthorization يمكنهم فتحها.
 //       - حفظ: يحفظ ربط الحاسوب المكتوب. إذا كان نفس الجهاز مرتبطاً بحاسوب آخر، يسأل عن حذف الربط القديم.
 //       - اختبار: ينفّذ فحص الحالة بالإعدادات الظاهرة (ويُسجَّل مثل كل العمليات).
 //       - حذف: يحذف ربط الحاسوب المحدد.
+//       - كشف: يحدد هل الجهاز على المنفذ من Geidea أو NamiPay (ويملأ المزوّد).
 //     كل أعمال التخزين والجهاز تتم على خيوط خلفية.
 // =====================================================================================
 
@@ -20,6 +22,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CDLL.Payments.Storage;
+using CDLL.Payments.Terminal;
 
 namespace CDLL.Payments.Mapping
 {
@@ -48,6 +51,8 @@ namespace CDLL.Payments.Mapping
 
             txtWorkstation.Text = Environment.MachineName.ToUpperInvariant();
             cmbTransport.SelectedItem = TerminalTransport.Com.ToString();
+            cmbProvider.SelectedItem = PaymentServices.DefaultProvider.ToString();
+            txtCashRegister.Text = PaymentServices.DefaultCashRegisterNumber;
 
             await ComPortPicker.RefreshAsync(cmbComPort, 0);   // EN: background scan, terminal port pre-selected   AR: بحث في الخلفية مع اختيار منفذ الجهاز
             IList<TerminalMapping> mappings = await ReloadListAsync();
@@ -133,6 +138,38 @@ namespace CDLL.Payments.Mapping
             });
         }
 
+        /// <summary>
+        /// EN: [Detect] Which company's terminal is on this port: Geidea Check status first, then NamiPay
+        ///     (NamiPay needs the cash register number). Every attempt is saved like any other operation.
+        /// AR: [كشف] أي شركة على هذا المنفذ: فحص حالة Geidea أولاً ثم NamiPay (يحتاج رقم الصندوق). كل محاولة تُحفظ.
+        /// </summary>
+        private async void btnDetect_Click(object sender, EventArgs e)
+        {
+            TerminalConnection connection = ReadConnectionOnly();
+            if (connection == null)
+                return;
+            if (_services.Detector == null)
+            {
+                SetStatus("Detection is not available. / الكشف غير متاح.");
+                return;
+            }
+
+            await RunBusyAsync(async () =>
+            {
+                ProviderDetection detection;
+                using (new WaitingCounter(seconds => SetStatus("Detecting Geidea / NamiPay on / جارٍ الكشف على " + connection.Describe() + " … " + seconds + " s"), () => { }))
+                    detection = await _services.Detector.DetectAsync(connection);
+
+                var context = new PaymentContext { TerminalName = txtTerminalName.Text.Trim(), Department = txtDepartment.Text.Trim() };
+                foreach (TerminalResult attempt in detection.Attempts)
+                    await _services.Storage.SaveTransactionAsync(PaymentTransactionRecord.FromResult(attempt, context));
+
+                if (detection.Provider.HasValue)
+                    cmbProvider.SelectedItem = detection.Provider.Value.ToString();
+                SetStatus(detection.Describe());
+            });
+        }
+
         private async void btnRemove_Click(object sender, EventArgs e)
         {
             if (lstMappings.SelectedItems.Count != 1)
@@ -167,7 +204,7 @@ namespace CDLL.Payments.Mapping
                 lstMappings.Items.Clear();
                 foreach (TerminalMapping m in mappings)
                 {
-                    var item = new ListViewItem(new[] { m.Workstation, m.TerminalName, m.Department, m.ToConnection().Describe(), m.UpdatedBy }) { Tag = m };
+                    var item = new ListViewItem(new[] { m.Workstation, m.Provider.ToString(), m.TerminalName, m.Department, m.ToConnection().Describe(), m.UpdatedBy }) { Tag = m };
                     lstMappings.Items.Add(item);
                 }
                 lstMappings.EndUpdate();
@@ -194,6 +231,38 @@ namespace CDLL.Payments.Mapping
             numStopBits.Value = Clamp(numStopBits, m.StopBits);
             txtTcpIp.Text = m.TcpIp;
             txtTcpPort.Text = m.TcpPort;
+            cmbProvider.SelectedItem = m.Provider.ToString();
+            txtCashRegister.Text = m.CashRegisterNumber;
+        }
+
+        private TerminalProvider SelectedProvider
+        {
+            get { return string.Equals(cmbProvider.SelectedItem as string, "NamiPay", StringComparison.Ordinal) ? TerminalProvider.NamiPay : TerminalProvider.Geidea; }
+        }
+
+        /// <summary>EN: Connection settings only (for Detect), or null with a message.  AR: إعدادات الاتصال فقط (للكشف)، أو null مع رسالة.</summary>
+        private TerminalConnection ReadConnectionOnly()
+        {
+            var connection = new TerminalConnection
+            {
+                Transport = string.Equals(cmbTransport.SelectedItem as string, "Tcp", StringComparison.Ordinal) ? TerminalTransport.Tcp : TerminalTransport.Com,
+                ComPort = ComPortPicker.SelectedPort(cmbComPort),
+                BaudRate = (int)numBaudRate.Value,
+                Parity = (int)numParity.Value,
+                DataBits = (int)numDataBits.Value,
+                StopBits = (int)numStopBits.Value,
+                TcpIp = txtTcpIp.Text.Trim(),
+                TcpPort = txtTcpPort.Text.Trim(),
+                Provider = SelectedProvider,
+                CashRegisterNumber = txtCashRegister.Text.Trim()
+            };
+            string error = connection.Validate();
+            if (error != null)
+            {
+                MessageBox.Show(this, error, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return null;
+            }
+            return connection;
         }
 
         /// <summary>EN: Mapping from the boxes, or null (with a message) when something is missing / invalid.  AR: الربط من الخانات، أو null مع رسالة عند وجود خطأ.</summary>
@@ -213,11 +282,15 @@ namespace CDLL.Payments.Mapping
                 TcpIp = txtTcpIp.Text.Trim(),
                 TcpPort = txtTcpPort.Text.Trim(),
                 UpdatedAtUtc = DateTime.UtcNow,
-                UpdatedBy = PaymentContext.CurrentWindowsUser()
+                UpdatedBy = PaymentContext.CurrentWindowsUser(),
+                Provider = SelectedProvider,
+                CashRegisterNumber = txtCashRegister.Text.Trim().Length == 0 ? null : txtCashRegister.Text.Trim()
             };
 
             string error = mapping.Workstation.Length == 0 ? "Workstation is required. / اسم الحاسوب مطلوب."
                          : mapping.TerminalName.Length == 0 ? "Terminal name is required. / اسم الجهاز مطلوب."
+                         : mapping.Provider == TerminalProvider.NamiPay && !TerminalConnection.IsValidCashRegister(mapping.CashRegisterNumber)
+                             ? "NamiPay needs the 8-digit cash register number. / NamiPay يحتاج رقم الصندوق المكوّن من 8 أرقام."
                          : mapping.ToConnection().Validate();
             if (error != null)
             {
@@ -230,7 +303,7 @@ namespace CDLL.Payments.Mapping
         private async Task RunBusyAsync(Func<Task> work)
         {
             UseWaitCursor = true;
-            btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = false;
+            btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = btnDetect.Enabled = false;
             try
             {
                 await work();
@@ -242,7 +315,7 @@ namespace CDLL.Payments.Mapping
             }
             finally
             {
-                btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = true;
+                btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = btnDetect.Enabled = true;
                 UseWaitCursor = false;
             }
         }

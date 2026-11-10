@@ -115,6 +115,13 @@
     <Compile Include="Payments\Terminal\MadaTerminalService.cs" />
     <Compile Include="Payments\Terminal\OutcomeClassifier.cs" />
     <Compile Include="Payments\Terminal\SerialPorts.cs" />
+    <Compile Include="Payments\Terminal\TerminalServiceBase.cs" />
+    <Compile Include="Payments\Terminal\ProviderTerminalService.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandProtocol.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandSimulator.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandStateStore.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandTerminalService.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandTransport.cs" />
     <Compile Include="Payments\Terminal\TerminalRequests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -132,6 +139,12 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <!-- EN: NamiPay / SkyBand ECR.dll (32-bit) from the NamiPay project, copied next to CDLL.exe.
+         AR: مكتبة ECR.dll الخاصة بـ NamiPay / SkyBand من مشروع NamiPay، تُنسخ بجانب CDLL.exe. -->
+    <None Include="..\NamiPay\CoreSkybandECR\ECR.dll">
+      <Link>ECR.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

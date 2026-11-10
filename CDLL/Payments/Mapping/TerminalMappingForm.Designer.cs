@@ -57,6 +57,12 @@ namespace CDLL.Payments.Mapping
             this.colDepartment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colConnection = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colUpdatedBy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colProvider = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lblProvider = new System.Windows.Forms.Label();
+            this.cmbProvider = new System.Windows.Forms.ComboBox();
+            this.btnDetect = new System.Windows.Forms.Button();
+            this.lblCashRegister = new System.Windows.Forms.Label();
+            this.txtCashRegister = new System.Windows.Forms.TextBox();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnRemove = new System.Windows.Forms.Button();
@@ -94,9 +100,14 @@ namespace CDLL.Payments.Mapping
             this.grpMapping.Controls.Add(this.txtTcpIp);
             this.grpMapping.Controls.Add(this.lblTcpPort);
             this.grpMapping.Controls.Add(this.txtTcpPort);
+            this.grpMapping.Controls.Add(this.lblProvider);
+            this.grpMapping.Controls.Add(this.cmbProvider);
+            this.grpMapping.Controls.Add(this.btnDetect);
+            this.grpMapping.Controls.Add(this.lblCashRegister);
+            this.grpMapping.Controls.Add(this.txtCashRegister);
             this.grpMapping.Location = new System.Drawing.Point(12, 12);
             this.grpMapping.Name = "grpMapping";
-            this.grpMapping.Size = new System.Drawing.Size(410, 375);
+            this.grpMapping.Size = new System.Drawing.Size(410, 435);
             this.grpMapping.TabIndex = 0;
             this.grpMapping.TabStop = false;
             this.grpMapping.Text = "Terminal of this workstation / جهاز هذا الحاسوب";
@@ -347,6 +358,59 @@ namespace CDLL.Payments.Mapping
             this.txtTcpPort.TabIndex = 21;
             this.txtTcpPort.Text = "6100";
             //
+            // lblProvider
+            //
+            this.lblProvider.AutoSize = true;
+            this.lblProvider.Location = new System.Drawing.Point(10, 361);
+            this.lblProvider.Name = "lblProvider";
+            this.lblProvider.Size = new System.Drawing.Size(141, 20);
+            this.lblProvider.TabIndex = 23;
+            this.lblProvider.Text = "Provider / المزوّد:";
+            //
+            // cmbProvider
+            //
+            this.cmbProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProvider.FormattingEnabled = true;
+            this.cmbProvider.Items.AddRange(new object[] {
+            "Geidea",
+            "NamiPay"});
+            this.cmbProvider.Location = new System.Drawing.Point(200, 358);
+            this.cmbProvider.Name = "cmbProvider";
+            this.cmbProvider.Size = new System.Drawing.Size(100, 28);
+            this.cmbProvider.TabIndex = 24;
+            //
+            // btnDetect
+            //
+            this.btnDetect.Location = new System.Drawing.Point(305, 356);
+            this.btnDetect.Name = "btnDetect";
+            this.btnDetect.Size = new System.Drawing.Size(90, 31);
+            this.btnDetect.TabIndex = 25;
+            this.btnDetect.Text = "Detect / كشف";
+            this.btnDetect.UseVisualStyleBackColor = true;
+            this.btnDetect.Click += new System.EventHandler(this.btnDetect_Click);
+            //
+            // lblCashRegister
+            //
+            this.lblCashRegister.AutoSize = true;
+            this.lblCashRegister.Location = new System.Drawing.Point(10, 393);
+            this.lblCashRegister.Name = "lblCashRegister";
+            this.lblCashRegister.Size = new System.Drawing.Size(186, 20);
+            this.lblCashRegister.TabIndex = 26;
+            this.lblCashRegister.Text = "Cash register (NamiPay):";
+            //
+            // txtCashRegister
+            //
+            this.txtCashRegister.Location = new System.Drawing.Point(200, 390);
+            this.txtCashRegister.MaxLength = 8;
+            this.txtCashRegister.Name = "txtCashRegister";
+            this.txtCashRegister.Size = new System.Drawing.Size(195, 27);
+            this.txtCashRegister.TabIndex = 27;
+            //
+            // colProvider
+            //
+            this.colProvider.Text = "Provider / المزوّد";
+            this.colProvider.Width = 75;
+            //
             // lstMappings
             //
             this.lstMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -354,6 +418,7 @@ namespace CDLL.Payments.Mapping
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lstMappings.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colWorkstation,
+            this.colProvider,
             this.colTerminal,
             this.colDepartment,
             this.colConnection,
@@ -363,7 +428,7 @@ namespace CDLL.Payments.Mapping
             this.lstMappings.Location = new System.Drawing.Point(435, 18);
             this.lstMappings.MultiSelect = false;
             this.lstMappings.Name = "lstMappings";
-            this.lstMappings.Size = new System.Drawing.Size(535, 369);
+            this.lstMappings.Size = new System.Drawing.Size(535, 429);
             this.lstMappings.TabIndex = 1;
             this.lstMappings.UseCompatibleStateImageBehavior = false;
             this.lstMappings.View = System.Windows.Forms.View.Details;
@@ -397,7 +462,7 @@ namespace CDLL.Payments.Mapping
             // btnSave
             //
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnSave.Location = new System.Drawing.Point(12, 400);
+            this.btnSave.Location = new System.Drawing.Point(12, 460);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(130, 46);
             this.btnSave.TabIndex = 2;
@@ -408,7 +473,7 @@ namespace CDLL.Payments.Mapping
             // btnTest
             //
             this.btnTest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnTest.Location = new System.Drawing.Point(152, 400);
+            this.btnTest.Location = new System.Drawing.Point(152, 460);
             this.btnTest.Name = "btnTest";
             this.btnTest.Size = new System.Drawing.Size(130, 46);
             this.btnTest.TabIndex = 3;
@@ -419,7 +484,7 @@ namespace CDLL.Payments.Mapping
             // btnRemove
             //
             this.btnRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnRemove.Location = new System.Drawing.Point(292, 400);
+            this.btnRemove.Location = new System.Drawing.Point(292, 460);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(130, 46);
             this.btnRemove.TabIndex = 4;
@@ -431,7 +496,7 @@ namespace CDLL.Payments.Mapping
             //
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(840, 400);
+            this.btnClose.Location = new System.Drawing.Point(840, 460);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(130, 46);
             this.btnClose.TabIndex = 6;
@@ -442,7 +507,7 @@ namespace CDLL.Payments.Mapping
             //
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblStatus.Location = new System.Drawing.Point(435, 400);
+            this.lblStatus.Location = new System.Drawing.Point(435, 460);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(395, 46);
             this.lblStatus.TabIndex = 5;
@@ -453,7 +518,7 @@ namespace CDLL.Payments.Mapping
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(982, 458);
+            this.ClientSize = new System.Drawing.Size(982, 518);
             this.Controls.Add(this.grpMapping);
             this.Controls.Add(this.lstMappings);
             this.Controls.Add(this.btnSave);
@@ -462,7 +527,7 @@ namespace CDLL.Payments.Mapping
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.btnClose);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.MinimumSize = new System.Drawing.Size(1000, 505);
+            this.MinimumSize = new System.Drawing.Size(1000, 565);
             this.Name = "TerminalMappingForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -510,6 +575,12 @@ namespace CDLL.Payments.Mapping
         private System.Windows.Forms.ColumnHeader colDepartment;
         private System.Windows.Forms.ColumnHeader colConnection;
         private System.Windows.Forms.ColumnHeader colUpdatedBy;
+        private System.Windows.Forms.ColumnHeader colProvider;
+        private System.Windows.Forms.Label lblProvider;
+        private System.Windows.Forms.ComboBox cmbProvider;
+        private System.Windows.Forms.Button btnDetect;
+        private System.Windows.Forms.Label lblCashRegister;
+        private System.Windows.Forms.TextBox txtCashRegister;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnRemove;

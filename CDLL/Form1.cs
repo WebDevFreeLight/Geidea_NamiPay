@@ -5,8 +5,10 @@
 //     (folder Payments\), created in Program.cs from app.config:
 //
 //       Button click
-//         -> IPaymentTerminalService (MadaTerminalService)   terminal call on a BACKGROUND thread
-//              -> IMadaNativeApi: NativeMadaApi (madaapi DLLs) | SimulatorMadaApi (TerminalMode=Simulator)
+//         -> IPaymentTerminalService (ProviderTerminalService) picks the company from "Provider":
+//              Geidea  -> MadaTerminalService     -> madaapi DLLs  (SimulatorMadaApi when TerminalMode=Simulator)
+//              NamiPay -> SkybandTerminalService  -> ECR.dll + COM/TCP (SkybandSimulator when TerminalMode=Simulator)
+//            terminal call on a BACKGROUND thread, same pipeline for both
 //         -> PaymentStorage                                  saves EVERY result on its own BACKGROUND thread
 //              -> SQLite | SQL Server | JSON  (Storage.Provider)
 //              -> database down? -> JSON file in pending\  -> "Sync pending" inserts it later
@@ -97,6 +99,7 @@ namespace CDLL
             SetNumber(numStopBits, "StopBits", 0);
             txtIp.Text = Setting("TerminalIp", "192.168.116.166");
             txtTcpPort.Text = Setting("TerminalTcpPort", "6100");
+            cmbProvider.SelectedItem = PaymentServices.DefaultProvider.ToString();
 
             SetNumber(numPurchaseAmount, "PurchaseAmount", 00.01m);
             SetNumber(numRefundAmount, "RefundAmount", 0.01m);
@@ -427,6 +430,7 @@ namespace CDLL
                 SaveSetting(config, "StopBits", numStopBits.Value);
                 SaveSetting(config, "TerminalIp", txtIp.Text.Trim());
                 SaveSetting(config, "TerminalTcpPort", txtTcpPort.Text.Trim());
+                SaveSetting(config, "TerminalProvider", SelectedProvider);
                 SaveSetting(config, "PurchaseAmount", numPurchaseAmount.Value);
                 SaveSetting(config, "RefundAmount", numRefundAmount.Value);
                 SaveSetting(config, "OriginalRrn", txtOriginalRrn.Text.Trim());
@@ -510,6 +514,7 @@ namespace CDLL
             }
 
             ComPortPicker.Select(cmbComPort, mapping.ComPort);
+            cmbProvider.SelectedItem = mapping.Provider.ToString();
             numBaudRate.Value = Clamp(numBaudRate, mapping.BaudRate);
             numParity.Value = Clamp(numParity, mapping.Parity);
             numDataBits.Value = Clamp(numDataBits, mapping.DataBits);
@@ -517,7 +522,7 @@ namespace CDLL
             if (!string.IsNullOrWhiteSpace(mapping.TcpIp)) txtIp.Text = mapping.TcpIp;
             if (!string.IsNullOrWhiteSpace(mapping.TcpPort)) txtTcpPort.Text = mapping.TcpPort;
 
-            lblTerminal.Text = "Terminal / الجهاز: " + mapping.TerminalName + " | " + mapping.Department + " | " + mapping.ToConnection().Describe();
+            lblTerminal.Text = "Terminal / الجهاز: " + mapping.Provider + " | " + mapping.TerminalName + " | " + mapping.Department + " | " + mapping.ToConnection().Describe();
             LogLine("Terminal mapping loaded / تم تحميل ربط الجهاز: " + lblTerminal.Text);
         }
 
@@ -543,8 +548,18 @@ namespace CDLL
                 DataBits = (int)numDataBits.Value,
                 StopBits = (int)numStopBits.Value,
                 TcpIp = txtIp.Text.Trim(),
-                TcpPort = txtTcpPort.Text.Trim()
+                TcpPort = txtTcpPort.Text.Trim(),
+                Provider = SelectedProvider,
+                CashRegisterNumber = _mapping != null && !string.IsNullOrWhiteSpace(_mapping.CashRegisterNumber)
+                    ? _mapping.CashRegisterNumber
+                    : PaymentServices.DefaultCashRegisterNumber
             };
+        }
+
+        /// <summary>EN: Geidea or NamiPay from the drop-down (decides which service runs the call).  AR: Geidea أو NamiPay من القائمة.</summary>
+        private TerminalProvider SelectedProvider
+        {
+            get { return string.Equals(cmbProvider.SelectedItem as string, "NamiPay", StringComparison.Ordinal) ? TerminalProvider.NamiPay : TerminalProvider.Geidea; }
         }
 
         private PaymentContext CurrentContext()
