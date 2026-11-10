@@ -255,6 +255,9 @@ namespace CDLL.Payments.Terminal
                 readFields();
 
             result.Outcome = _classifier.Classify(result.Operation, result.ReturnCode.Value, result.ResponseCode);
+            if (result.Outcome == TransactionOutcome.CancelledOrTimeout && result.ErrorMessage == null)
+                result.ErrorMessage = "Cancelled on the terminal, or no card was presented in time (return code 8). Check the terminal screen; use Repeat last if unsure. / " +
+                                      "أُلغيت العملية على الجهاز أو لم تُقدَّم البطاقة في الوقت المحدد (رمز 8). راجع شاشة الجهاز، واستخدم إعادة آخر عملية عند الشك.";
             return result;
         }
 

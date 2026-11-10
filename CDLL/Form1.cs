@@ -13,7 +13,7 @@
 //         -> HisBillingRules / IHisNotifier                  hook to tell HIS (patient bill / balance)
 //
 //     Terminal of this PC: read from the TerminalMappings table at startup ("Terminal mapping" button to change it).
-//     Every outcome is recorded: Approved, Declined, Cancelled, Timeout, NoResponse, Failed, Error, Ok,
+//     Every outcome is recorded: Approved, Declined, Cancelled, Timeout, CancelledOrTimeout, NoResponse, Failed, Error, Ok,
 //     with every field the terminal returned. Card numbers are masked; the expiry date is never stored.
 // AR: نافذة نظام نقاط البيع (ECR) لأجهزة الدفع SPAN / مدى.
 //     النافذة تجمع المدخلات وتعرض النتائج فقط، وكل العمل تقوم به خدمات قابلة لإعادة الاستخدام (مجلد Payments\)

@@ -1,8 +1,9 @@
 // =====================================================================================
 // EN: Turns what the terminal returned (DLL return code + host response code) into ONE outcome:
-//     Approved / Declined / Cancelled / Timeout / NoResponse / Failed / Ok.
+//     Approved / Declined / Cancelled / Timeout / CancelledOrTimeout / NoResponse / Failed / Ok.
 //       1. DLL return code first: -3 = no terminal / no answer, -4 = communication timeout,
-//          8 = cancelled on the terminal, other non-zero = Failed.
+//          8 = cancelled on the terminal OR timed out waiting for the card (CancelledOrTimeout),
+//          other non-zero = Failed.
 //       2. Return code 0 on a non-financial call (status, terminal ID, merchant, reconciliation) = Ok.
 //       3. Return code 0 on a payment / refund / repeat: the host response code decides:
 //            in "Outcome.CancelledResponseCodes" -> Cancelled, in "Outcome.TimeoutResponseCodes" -> Timeout,
@@ -10,8 +11,8 @@
 //     The cancel / timeout response codes are vendor-specific, so they are read from app.config.
 //     Fill them in from the vendor's mada ECR document.
 // AR: يحوّل ما أعاده الجهاز (رمز الإرجاع من المكتبة + رمز استجابة البنك) إلى نتيجة واحدة.
-//       1. رمز الإرجاع أولاً: ‎-3 لا يوجد جهاز، ‎-4 انتهت مهلة الاتصال، 8 = أُلغيت على الجهاز،
-//          وأي رمز آخر غير الصفر = Failed.
+//       1. رمز الإرجاع أولاً: ‎-3 لا يوجد جهاز، ‎-4 انتهت مهلة الاتصال،
+//          8 = أُلغيت على الجهاز أو انتهت مهلة انتظار البطاقة (CancelledOrTimeout)، وأي رمز آخر غير الصفر = Failed.
 //       2. رمز 0 في عملية غير مالية (الحالة، رقم الجهاز، التاجر، التسوية) = Ok.
 //       3. رمز 0 في شراء / استرجاع / إعادة: رمز استجابة البنك يحدد النتيجة حسب القوائم في app.config.
 //     رموز الإلغاء وانتهاء المهلة تختلف حسب المورّد، لذلك تُقرأ من app.config. املأها من وثيقة ECR الخاصة بمدى.
@@ -32,8 +33,11 @@ namespace CDLL.Payments.Terminal
         /// <summary>EN: DLL return code for "communication timeout" (seen with the wrong COM port).  AR: رمز انتهاء مهلة الاتصال.</summary>
         public const int CommunicationTimeoutReturnCode = -4;
 
-        /// <summary>EN: DLL return code when the transaction is cancelled on the terminal.  AR: رمز الإرجاع عند إلغاء العملية على الجهاز.</summary>
-        public const int CancelledReturnCode = 8;
+        /// <summary>
+        /// EN: DLL return code when the transaction was cancelled on the terminal OR timed out waiting for the card.
+        /// AR: رمز الإرجاع عند إلغاء العملية على الجهاز أو انتهاء مهلة انتظار البطاقة.
+        /// </summary>
+        public const int CancelledOrTimeoutReturnCode = 8;
 
         private readonly HashSet<string> _approved;
         private readonly HashSet<string> _cancelled;
@@ -61,8 +65,8 @@ namespace CDLL.Payments.Terminal
                 return TransactionOutcome.NoResponse;
             if (returnCode == CommunicationTimeoutReturnCode)
                 return TransactionOutcome.Timeout;
-            if (returnCode == CancelledReturnCode)
-                return TransactionOutcome.Cancelled;
+            if (returnCode == CancelledOrTimeoutReturnCode)
+                return TransactionOutcome.CancelledOrTimeout;
             if (returnCode != 0)
                 return TransactionOutcome.Failed;
 

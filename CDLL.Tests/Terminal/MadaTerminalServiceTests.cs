@@ -38,7 +38,7 @@ namespace CDLL.Tests.Terminal
         [InlineData(0, "000", TransactionOutcome.Approved)]    // EN: paid                       AR: تم الدفع
         [InlineData(0, "100", TransactionOutcome.Declined)]    // EN: refused by the bank         AR: رفض البنك
         [InlineData(0, "400", TransactionOutcome.Cancelled)]   // EN: cancel response code        AR: رمز إلغاء من البنك
-        [InlineData(8, null, TransactionOutcome.Cancelled)]    // EN: cancelled on the terminal   AR: أُلغيت على الجهاز
+        [InlineData(8, null, TransactionOutcome.CancelledOrTimeout)] // EN: cancelled or no card in time   AR: أُلغيت أو انتهت مهلة البطاقة
         [InlineData(0, "911", TransactionOutcome.Timeout)]     // EN: host timeout code           AR: رمز انتهاء مهلة البنك
         [InlineData(-4, null, TransactionOutcome.Timeout)]     // EN: communication timeout       AR: انتهاء مهلة الاتصال
         [InlineData(-3, null, TransactionOutcome.NoResponse)]  // EN: no terminal                 AR: لا يوجد جهاز
@@ -53,6 +53,19 @@ namespace CDLL.Tests.Terminal
 
             Assert.Equal(expected, result.Outcome);
             Assert.Equal(returnCode, result.ReturnCode);
+        }
+
+        [Fact]
+        public async Task Return_code_8_tells_the_cashier_it_was_cancelled_or_timed_out()
+        {
+            _fake.ReturnCode = OutcomeClassifier.CancelledOrTimeoutReturnCode;
+
+            TerminalResult result = await Service().PurchaseAsync(Com8, 0.01m);
+
+            Assert.Equal(TransactionOutcome.CancelledOrTimeout, result.Outcome);
+            Assert.False(result.IsSuccess);
+            Assert.Contains("return code 8", result.ErrorMessage);
+            Assert.Contains("Repeat last", result.ErrorMessage);
         }
 
         [Fact]

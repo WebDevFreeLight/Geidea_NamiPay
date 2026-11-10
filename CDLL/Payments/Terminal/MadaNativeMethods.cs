@@ -27,8 +27,10 @@
 //     dataTime[13], expDate[5] (NEVER read or saved), trxRrn[13], authCode[7], rspCode[4], terminalId[17],
 //     schemeId[3], merchantId[16], addtlAmount[13], ecrrefno[17], version[10], outResp (StringBuilder 15000).
 //   Return value: status code as IntPtr. 0 = the call worked. Seen on this site: -3 no terminal / no answer,
-//     -4 communication timeout, 8 cancelled on the terminal. Other values come from the vendor document.
-//     AR: القيمة المُعادة رمز حالة: 0 = نجح الاستدعاء. لوحظ: ‎-3 لا يوجد جهاز، ‎-4 انتهت مهلة الاتصال، 8 = أُلغيت على الجهاز.
+//     -4 communication timeout, 8 cancelled on the terminal or timed out waiting for the card.
+//     Other values come from the vendor document.
+//     AR: القيمة المُعادة رمز حالة: 0 = نجح الاستدعاء. لوحظ: ‎-3 لا يوجد جهاز، ‎-4 انتهت مهلة الاتصال،
+//         8 = أُلغيت على الجهاز أو انتهت مهلة انتظار البطاقة.
 // =====================================================================================
 
 using System;
