@@ -37,3 +37,6 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+// EN: Lets the CDLL.Tests project test internal helpers.   AR: يسمح لمشروع CDLL.Tests باختبار الدوال الداخلية.
+[assembly: InternalsVisibleTo("CDLL.Tests")]

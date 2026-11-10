@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EN: Tests for the CDLL payment services: every terminal status, every returned field, all three storage
+        back-ends (SQLite, SQL Server LocalDB, JSON), the JSON fallback, background threads and security rules.
+        A FAKE terminal is used, so no device is contacted and nothing is charged.
+        x86 because CDLL is a 32-bit app (the vendor DLLs are 32-bit).
+        Run:  dotnet test CDLL.Tests
+    AR: اختبارات خدمات الدفع في CDLL: كل حالات الجهاز، كل الحقول المعادة، وسائل التخزين الثلاث، الحفظ الاحتياطي،
+        الخيوط الخلفية وقواعد الأمان. يُستخدم جهاز وهمي، فلا يتم الاتصال بأي جهاز ولا يُخصم أي مبلغ.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <!-- EN: Copies the 32-bit native e_sqlite3.dll next to the tests.   AR: ينسخ مكتبة e_sqlite3.dll بنظام 32-بت بجانب الاختبارات. -->
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <LangVersion>7.3</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- EN: The test host redirects System.Runtime.CompilerServices.Unsafe to 6.0.0.0, so ship that version (CDLL.exe itself uses 4.0.4.1).
+         AR: مضيف الاختبارات يعيد توجيه هذه المكتبة إلى الإصدار 6.0.0.0، لذلك نضيفه هنا (CDLL.exe نفسه يستخدم 4.0.4.1). -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- EN: No shadow copy: SQLite loads e_sqlite3.dll from the folder of the test DLL.   AR: بدون نسخ ظلي حتى تجد SQLite مكتبتها الأصلية. -->
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CDLL\CDLL.csproj" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

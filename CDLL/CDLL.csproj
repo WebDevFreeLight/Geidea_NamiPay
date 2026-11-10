@@ -8,7 +8,10 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>CDLL</RootNamespace>
     <AssemblyName>CDLL</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <!-- EN: NuGet packages need assembly binding redirects on .NET Framework (written into CDLL.exe.config).
+         AR: حزم NuGet تحتاج إعادة توجيه الإصدارات على ‎.NET Framework (تُكتب في CDLL.exe.config). -->
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -52,13 +55,21 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll</HintPath>
+    </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- EN: SQLite storage (bundles the native e_sqlite3.dll) and JSON files / fallback.
+         AR: تخزين SQLite (مع المكتبة الأصلية e_sqlite3.dll) وملفات JSON والحفظ الاحتياطي. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Form1.cs">
@@ -74,6 +85,33 @@
       <DependentUpon>SimulatorForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Simulator\MadaApiSimulator.cs" />
+    <Compile Include="Payments\PaymentModels.cs" />
+    <Compile Include="Payments\PaymentServices.cs" />
+    <Compile Include="Payments\Integration\IHisNotifier.cs" />
+    <Compile Include="Payments\Integration\HisBillingRules.cs" />
+    <Compile Include="Payments\Mapping\MappingAuthorization.cs" />
+    <Compile Include="Payments\Mapping\TerminalMappingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Payments\Mapping\TerminalMappingForm.Designer.cs">
+      <DependentUpon>TerminalMappingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Payments\Storage\ActivityLog.cs" />
+    <Compile Include="Payments\Storage\ITransactionStore.cs" />
+    <Compile Include="Payments\Storage\JsonTransactionStore.cs" />
+    <Compile Include="Payments\Storage\PaymentStorage.cs" />
+    <Compile Include="Payments\Storage\PendingJsonQueue.cs" />
+    <Compile Include="Payments\Storage\SqliteTransactionStore.cs" />
+    <Compile Include="Payments\Storage\SqlServerTransactionStore.cs" />
+    <Compile Include="Payments\Storage\SqlTransactionStore.cs" />
+    <Compile Include="Payments\Storage\TableSchema.cs" />
+    <Compile Include="Payments\Terminal\CardDataMasker.cs" />
+    <Compile Include="Payments\Terminal\IMadaNativeApi.cs" />
+    <Compile Include="Payments\Terminal\IPaymentTerminalService.cs" />
+    <Compile Include="Payments\Terminal\MadaNativeMethods.cs" />
+    <Compile Include="Payments\Terminal\MadaTerminalService.cs" />
+    <Compile Include="Payments\Terminal\OutcomeClassifier.cs" />
+    <Compile Include="Payments\Terminal\TerminalRequests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -118,4 +156,4 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-</Project>
+</Project>
