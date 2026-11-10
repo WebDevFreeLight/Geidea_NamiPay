@@ -97,29 +97,29 @@ namespace CDLL
             ((System.ComponentModel.ISupportInitialize)(this.numPurchaseAmount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numRefundAmount)).BeginInit();
             this.SuspendLayout();
-            //
+            // 
             // lblUsb
-            //
+            // 
             this.lblUsb.AutoSize = true;
             this.lblUsb.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblUsb.Location = new System.Drawing.Point(20, 12);
             this.lblUsb.Name = "lblUsb";
-            this.lblUsb.Size = new System.Drawing.Size(115, 15);
+            this.lblUsb.Size = new System.Drawing.Size(157, 20);
             this.lblUsb.TabIndex = 0;
             this.lblUsb.Text = "USB / COM (تسلسلي)";
-            //
+            // 
             // lblTcp
-            //
+            // 
             this.lblTcp.AutoSize = true;
             this.lblTcp.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblTcp.Location = new System.Drawing.Point(180, 12);
             this.lblTcp.Name = "lblTcp";
-            this.lblTcp.Size = new System.Drawing.Size(92, 15);
+            this.lblTcp.Size = new System.Drawing.Size(106, 20);
             this.lblTcp.TabIndex = 1;
             this.lblTcp.Text = "TCP/IP (شبكة)";
-            //
+            // 
             // btnStatusUsb
-            //
+            // 
             this.btnStatusUsb.Location = new System.Drawing.Point(20, 35);
             this.btnStatusUsb.Name = "btnStatusUsb";
             this.btnStatusUsb.Size = new System.Drawing.Size(150, 46);
@@ -127,9 +127,9 @@ namespace CDLL
             this.btnStatusUsb.Text = "Check status (USB)\r\nفحص الحالة";
             this.btnStatusUsb.UseVisualStyleBackColor = true;
             this.btnStatusUsb.Click += new System.EventHandler(this.btnStatusUsb_Click);
-            //
+            // 
             // btnStatusTcp
-            //
+            // 
             this.btnStatusTcp.Location = new System.Drawing.Point(180, 35);
             this.btnStatusTcp.Name = "btnStatusTcp";
             this.btnStatusTcp.Size = new System.Drawing.Size(150, 46);
@@ -137,9 +137,9 @@ namespace CDLL
             this.btnStatusTcp.Text = "Check status (TCP)\r\nفحص الحالة";
             this.btnStatusTcp.UseVisualStyleBackColor = true;
             this.btnStatusTcp.Click += new System.EventHandler(this.btnStatusTcp_Click);
-            //
+            // 
             // btnPurchaseUsb
-            //
+            // 
             this.btnPurchaseUsb.Location = new System.Drawing.Point(20, 87);
             this.btnPurchaseUsb.Name = "btnPurchaseUsb";
             this.btnPurchaseUsb.Size = new System.Drawing.Size(150, 46);
@@ -147,9 +147,9 @@ namespace CDLL
             this.btnPurchaseUsb.Text = "Purchase (USB)\r\nشراء";
             this.btnPurchaseUsb.UseVisualStyleBackColor = true;
             this.btnPurchaseUsb.Click += new System.EventHandler(this.btnPurchaseUsb_Click);
-            //
+            // 
             // btnPurchaseTcp
-            //
+            // 
             this.btnPurchaseTcp.Location = new System.Drawing.Point(180, 87);
             this.btnPurchaseTcp.Name = "btnPurchaseTcp";
             this.btnPurchaseTcp.Size = new System.Drawing.Size(150, 46);
@@ -157,9 +157,9 @@ namespace CDLL
             this.btnPurchaseTcp.Text = "Purchase (TCP)\r\nشراء";
             this.btnPurchaseTcp.UseVisualStyleBackColor = true;
             this.btnPurchaseTcp.Click += new System.EventHandler(this.btnPurchaseTcp_Click);
-            //
+            // 
             // btnRefundUsb
-            //
+            // 
             this.btnRefundUsb.Location = new System.Drawing.Point(20, 139);
             this.btnRefundUsb.Name = "btnRefundUsb";
             this.btnRefundUsb.Size = new System.Drawing.Size(150, 46);
@@ -167,9 +167,9 @@ namespace CDLL
             this.btnRefundUsb.Text = "Refund (USB)\r\nاسترجاع";
             this.btnRefundUsb.UseVisualStyleBackColor = true;
             this.btnRefundUsb.Click += new System.EventHandler(this.btnRefundUsb_Click);
-            //
+            // 
             // btnRefundTcp
-            //
+            // 
             this.btnRefundTcp.Location = new System.Drawing.Point(180, 139);
             this.btnRefundTcp.Name = "btnRefundTcp";
             this.btnRefundTcp.Size = new System.Drawing.Size(150, 46);
@@ -177,9 +177,9 @@ namespace CDLL
             this.btnRefundTcp.Text = "Refund (TCP)\r\nاسترجاع";
             this.btnRefundTcp.UseVisualStyleBackColor = true;
             this.btnRefundTcp.Click += new System.EventHandler(this.btnRefundTcp_Click);
-            //
+            // 
             // btnRepeatUsb
-            //
+            // 
             this.btnRepeatUsb.Location = new System.Drawing.Point(20, 191);
             this.btnRepeatUsb.Name = "btnRepeatUsb";
             this.btnRepeatUsb.Size = new System.Drawing.Size(150, 46);
@@ -187,9 +187,9 @@ namespace CDLL
             this.btnRepeatUsb.Text = "Repeat last (USB)\r\nإعادة آخر عملية";
             this.btnRepeatUsb.UseVisualStyleBackColor = true;
             this.btnRepeatUsb.Click += new System.EventHandler(this.btnRepeatUsb_Click);
-            //
+            // 
             // btnRepeatTcp
-            //
+            // 
             this.btnRepeatTcp.Location = new System.Drawing.Point(180, 191);
             this.btnRepeatTcp.Name = "btnRepeatTcp";
             this.btnRepeatTcp.Size = new System.Drawing.Size(150, 46);
@@ -197,9 +197,9 @@ namespace CDLL
             this.btnRepeatTcp.Text = "Repeat last (TCP)\r\nإعادة آخر عملية";
             this.btnRepeatTcp.UseVisualStyleBackColor = true;
             this.btnRepeatTcp.Click += new System.EventHandler(this.btnRepeatTcp_Click);
-            //
+            // 
             // btnReconUsb
-            //
+            // 
             this.btnReconUsb.Location = new System.Drawing.Point(20, 243);
             this.btnReconUsb.Name = "btnReconUsb";
             this.btnReconUsb.Size = new System.Drawing.Size(150, 46);
@@ -207,9 +207,9 @@ namespace CDLL
             this.btnReconUsb.Text = "Reconciliation (USB)\r\nالتسوية";
             this.btnReconUsb.UseVisualStyleBackColor = true;
             this.btnReconUsb.Click += new System.EventHandler(this.btnReconUsb_Click);
-            //
+            // 
             // btnReconTcp
-            //
+            // 
             this.btnReconTcp.Location = new System.Drawing.Point(180, 243);
             this.btnReconTcp.Name = "btnReconTcp";
             this.btnReconTcp.Size = new System.Drawing.Size(150, 46);
@@ -217,9 +217,9 @@ namespace CDLL
             this.btnReconTcp.Text = "Reconciliation (TCP)\r\nالتسوية";
             this.btnReconTcp.UseVisualStyleBackColor = true;
             this.btnReconTcp.Click += new System.EventHandler(this.btnReconTcp_Click);
-            //
+            // 
             // btnMerchant
-            //
+            // 
             this.btnMerchant.Location = new System.Drawing.Point(20, 295);
             this.btnMerchant.Name = "btnMerchant";
             this.btnMerchant.Size = new System.Drawing.Size(150, 46);
@@ -227,9 +227,9 @@ namespace CDLL
             this.btnMerchant.Text = "Merchant info (USB)\r\nبيانات التاجر";
             this.btnMerchant.UseVisualStyleBackColor = true;
             this.btnMerchant.Click += new System.EventHandler(this.btnMerchant_Click);
-            //
+            // 
             // btnTerminalId
-            //
+            // 
             this.btnTerminalId.Location = new System.Drawing.Point(180, 295);
             this.btnTerminalId.Name = "btnTerminalId";
             this.btnTerminalId.Size = new System.Drawing.Size(150, 46);
@@ -237,9 +237,9 @@ namespace CDLL
             this.btnTerminalId.Text = "Terminal ID (TCP)\r\nرقم الجهاز";
             this.btnTerminalId.UseVisualStyleBackColor = true;
             this.btnTerminalId.Click += new System.EventHandler(this.btnTerminalId_Click);
-            //
+            // 
             // btnClearLog
-            //
+            // 
             this.btnClearLog.Location = new System.Drawing.Point(20, 360);
             this.btnClearLog.Name = "btnClearLog";
             this.btnClearLog.Size = new System.Drawing.Size(150, 32);
@@ -247,9 +247,9 @@ namespace CDLL
             this.btnClearLog.Text = "Clear log / مسح السجل";
             this.btnClearLog.UseVisualStyleBackColor = true;
             this.btnClearLog.Click += new System.EventHandler(this.btnClearLog_Click);
-            //
+            // 
             // btnSaveDefaults
-            //
+            // 
             this.btnSaveDefaults.Location = new System.Drawing.Point(180, 360);
             this.btnSaveDefaults.Name = "btnSaveDefaults";
             this.btnSaveDefaults.Size = new System.Drawing.Size(150, 32);
@@ -257,9 +257,9 @@ namespace CDLL
             this.btnSaveDefaults.Text = "Save defaults / حفظ الافتراضي";
             this.btnSaveDefaults.UseVisualStyleBackColor = true;
             this.btnSaveDefaults.Click += new System.EventHandler(this.btnSaveDefaults_Click);
-            //
+            // 
             // grpConnection
-            //
+            // 
             this.grpConnection.Controls.Add(this.lblComPort);
             this.grpConnection.Controls.Add(this.numComPort);
             this.grpConnection.Controls.Add(this.lblBaudRate);
@@ -280,137 +280,185 @@ namespace CDLL
             this.grpConnection.TabIndex = 16;
             this.grpConnection.TabStop = false;
             this.grpConnection.Text = "Connection settings / إعدادات الاتصال";
-            //
+            // 
             // lblComPort
-            //
+            // 
             this.lblComPort.AutoSize = true;
             this.lblComPort.Location = new System.Drawing.Point(10, 29);
             this.lblComPort.Name = "lblComPort";
-            this.lblComPort.Size = new System.Drawing.Size(120, 15);
+            this.lblComPort.Size = new System.Drawing.Size(158, 20);
             this.lblComPort.TabIndex = 0;
             this.lblComPort.Text = "COM port / منفذ COM:";
-            //
+            // 
             // numComPort
-            //
+            // 
             this.numComPort.Location = new System.Drawing.Point(205, 26);
-            this.numComPort.Maximum = new decimal(new int[] { 256, 0, 0, 0 });
-            this.numComPort.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            this.numComPort.Maximum = new decimal(new int[] {
+            256,
+            0,
+            0,
+            0});
+            this.numComPort.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.numComPort.Name = "numComPort";
-            this.numComPort.Size = new System.Drawing.Size(115, 23);
+            this.numComPort.Size = new System.Drawing.Size(115, 27);
             this.numComPort.TabIndex = 1;
-            this.numComPort.Value = new decimal(new int[] { 5, 0, 0, 0 });
-            //
+            this.numComPort.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            // 
             // lblBaudRate
-            //
+            // 
             this.lblBaudRate.AutoSize = true;
             this.lblBaudRate.Location = new System.Drawing.Point(10, 59);
             this.lblBaudRate.Name = "lblBaudRate";
-            this.lblBaudRate.Size = new System.Drawing.Size(130, 15);
+            this.lblBaudRate.Size = new System.Drawing.Size(159, 20);
             this.lblBaudRate.TabIndex = 2;
             this.lblBaudRate.Text = "Baud rate / سرعة النقل:";
-            //
+            // 
             // numBaudRate
-            //
-            this.numBaudRate.Increment = new decimal(new int[] { 9600, 0, 0, 0 });
+            // 
+            this.numBaudRate.Increment = new decimal(new int[] {
+            9600,
+            0,
+            0,
+            0});
             this.numBaudRate.Location = new System.Drawing.Point(205, 56);
-            this.numBaudRate.Maximum = new decimal(new int[] { 921600, 0, 0, 0 });
-            this.numBaudRate.Minimum = new decimal(new int[] { 300, 0, 0, 0 });
+            this.numBaudRate.Maximum = new decimal(new int[] {
+            921600,
+            0,
+            0,
+            0});
+            this.numBaudRate.Minimum = new decimal(new int[] {
+            300,
+            0,
+            0,
+            0});
             this.numBaudRate.Name = "numBaudRate";
-            this.numBaudRate.Size = new System.Drawing.Size(115, 23);
+            this.numBaudRate.Size = new System.Drawing.Size(115, 27);
             this.numBaudRate.TabIndex = 3;
-            this.numBaudRate.Value = new decimal(new int[] { 38400, 0, 0, 0 });
-            //
+            this.numBaudRate.Value = new decimal(new int[] {
+            38400,
+            0,
+            0,
+            0});
+            // 
             // lblParity
-            //
+            // 
             this.lblParity.AutoSize = true;
             this.lblParity.Location = new System.Drawing.Point(10, 89);
             this.lblParity.Name = "lblParity";
-            this.lblParity.Size = new System.Drawing.Size(150, 15);
+            this.lblParity.Size = new System.Drawing.Size(169, 20);
             this.lblParity.TabIndex = 4;
             this.lblParity.Text = "Parity (0=none) / التماثل:";
-            //
+            // 
             // numParity
-            //
+            // 
             this.numParity.Location = new System.Drawing.Point(205, 86);
-            this.numParity.Maximum = new decimal(new int[] { 4, 0, 0, 0 });
+            this.numParity.Maximum = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
             this.numParity.Name = "numParity";
-            this.numParity.Size = new System.Drawing.Size(115, 23);
+            this.numParity.Size = new System.Drawing.Size(115, 27);
             this.numParity.TabIndex = 5;
-            //
+            // 
             // lblDataBits
-            //
+            // 
             this.lblDataBits.AutoSize = true;
             this.lblDataBits.Location = new System.Drawing.Point(10, 119);
             this.lblDataBits.Name = "lblDataBits";
-            this.lblDataBits.Size = new System.Drawing.Size(140, 15);
+            this.lblDataBits.Size = new System.Drawing.Size(164, 20);
             this.lblDataBits.TabIndex = 6;
             this.lblDataBits.Text = "Data bits / بتات البيانات:";
-            //
+            // 
             // numDataBits
-            //
+            // 
             this.numDataBits.Location = new System.Drawing.Point(205, 116);
-            this.numDataBits.Maximum = new decimal(new int[] { 8, 0, 0, 0 });
-            this.numDataBits.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
+            this.numDataBits.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.numDataBits.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
             this.numDataBits.Name = "numDataBits";
-            this.numDataBits.Size = new System.Drawing.Size(115, 23);
+            this.numDataBits.Size = new System.Drawing.Size(115, 27);
             this.numDataBits.TabIndex = 7;
-            this.numDataBits.Value = new decimal(new int[] { 8, 0, 0, 0 });
-            //
+            this.numDataBits.Value = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            // 
             // lblStopBits
-            //
+            // 
             this.lblStopBits.AutoSize = true;
             this.lblStopBits.Location = new System.Drawing.Point(10, 149);
             this.lblStopBits.Name = "lblStopBits";
-            this.lblStopBits.Size = new System.Drawing.Size(185, 15);
+            this.lblStopBits.Size = new System.Drawing.Size(219, 20);
             this.lblStopBits.TabIndex = 8;
             this.lblStopBits.Text = "Stop bits (0=one) / بتات التوقف:";
-            //
+            // 
             // numStopBits
-            //
+            // 
             this.numStopBits.Location = new System.Drawing.Point(205, 146);
-            this.numStopBits.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
+            this.numStopBits.Maximum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
             this.numStopBits.Name = "numStopBits";
-            this.numStopBits.Size = new System.Drawing.Size(115, 23);
+            this.numStopBits.Size = new System.Drawing.Size(115, 27);
             this.numStopBits.TabIndex = 9;
-            //
+            // 
             // lblIp
-            //
+            // 
             this.lblIp.AutoSize = true;
             this.lblIp.Location = new System.Drawing.Point(10, 179);
             this.lblIp.Name = "lblIp";
-            this.lblIp.Size = new System.Drawing.Size(140, 15);
+            this.lblIp.Size = new System.Drawing.Size(151, 20);
             this.lblIp.TabIndex = 10;
             this.lblIp.Text = "Terminal IP / عنوان IP:";
-            //
+            // 
             // txtIp
-            //
+            // 
             this.txtIp.Location = new System.Drawing.Point(205, 176);
             this.txtIp.MaxLength = 15;
             this.txtIp.Name = "txtIp";
-            this.txtIp.Size = new System.Drawing.Size(115, 23);
+            this.txtIp.Size = new System.Drawing.Size(115, 27);
             this.txtIp.TabIndex = 11;
             this.txtIp.Text = "192.168.116.166";
-            //
+            // 
             // lblTcpPort
-            //
+            // 
             this.lblTcpPort.AutoSize = true;
             this.lblTcpPort.Location = new System.Drawing.Point(10, 209);
             this.lblTcpPort.Name = "lblTcpPort";
-            this.lblTcpPort.Size = new System.Drawing.Size(130, 15);
+            this.lblTcpPort.Size = new System.Drawing.Size(140, 20);
             this.lblTcpPort.TabIndex = 12;
             this.lblTcpPort.Text = "TCP port / منفذ TCP:";
-            //
+            // 
             // txtTcpPort
-            //
+            // 
             this.txtTcpPort.Location = new System.Drawing.Point(205, 206);
             this.txtTcpPort.MaxLength = 5;
             this.txtTcpPort.Name = "txtTcpPort";
-            this.txtTcpPort.Size = new System.Drawing.Size(115, 23);
+            this.txtTcpPort.Size = new System.Drawing.Size(115, 27);
             this.txtTcpPort.TabIndex = 13;
             this.txtTcpPort.Text = "6100";
-            //
+            // 
             // grpTransaction
-            //
+            // 
             this.grpTransaction.Controls.Add(this.lblPurchaseAmount);
             this.grpTransaction.Controls.Add(this.numPurchaseAmount);
             this.grpTransaction.Controls.Add(this.lblRefundAmount);
@@ -425,87 +473,111 @@ namespace CDLL
             this.grpTransaction.TabIndex = 17;
             this.grpTransaction.TabStop = false;
             this.grpTransaction.Text = "Transaction values / قيم العملية";
-            //
+            // 
             // lblPurchaseAmount
-            //
+            // 
             this.lblPurchaseAmount.AutoSize = true;
             this.lblPurchaseAmount.Location = new System.Drawing.Point(10, 29);
             this.lblPurchaseAmount.Name = "lblPurchaseAmount";
-            this.lblPurchaseAmount.Size = new System.Drawing.Size(190, 15);
+            this.lblPurchaseAmount.Size = new System.Drawing.Size(237, 20);
             this.lblPurchaseAmount.TabIndex = 0;
             this.lblPurchaseAmount.Text = "Purchase amount SAR / مبلغ الشراء:";
-            //
+            // 
             // numPurchaseAmount
-            //
+            // 
             this.numPurchaseAmount.DecimalPlaces = 2;
             this.numPurchaseAmount.Location = new System.Drawing.Point(205, 26);
-            this.numPurchaseAmount.Maximum = new decimal(new int[] { 999999999, 0, 0, 0 });
-            this.numPurchaseAmount.Minimum = new decimal(new int[] { 1, 0, 0, 131072 });
+            this.numPurchaseAmount.Maximum = new decimal(new int[] {
+            999999999,
+            0,
+            0,
+            0});
+            this.numPurchaseAmount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
             this.numPurchaseAmount.Name = "numPurchaseAmount";
-            this.numPurchaseAmount.Size = new System.Drawing.Size(115, 23);
+            this.numPurchaseAmount.Size = new System.Drawing.Size(115, 27);
             this.numPurchaseAmount.TabIndex = 1;
-            this.numPurchaseAmount.Value = new decimal(new int[] { 4371, 0, 0, 131072 });
-            //
+            this.numPurchaseAmount.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            // 
             // lblRefundAmount
-            //
+            // 
             this.lblRefundAmount.AutoSize = true;
             this.lblRefundAmount.Location = new System.Drawing.Point(10, 59);
             this.lblRefundAmount.Name = "lblRefundAmount";
-            this.lblRefundAmount.Size = new System.Drawing.Size(190, 15);
+            this.lblRefundAmount.Size = new System.Drawing.Size(249, 20);
             this.lblRefundAmount.TabIndex = 2;
             this.lblRefundAmount.Text = "Refund amount SAR / مبلغ الاسترجاع:";
-            //
+            // 
             // numRefundAmount
-            //
+            // 
             this.numRefundAmount.DecimalPlaces = 2;
             this.numRefundAmount.Location = new System.Drawing.Point(205, 56);
-            this.numRefundAmount.Maximum = new decimal(new int[] { 999999999, 0, 0, 0 });
-            this.numRefundAmount.Minimum = new decimal(new int[] { 1, 0, 0, 131072 });
+            this.numRefundAmount.Maximum = new decimal(new int[] {
+            999999999,
+            0,
+            0,
+            0});
+            this.numRefundAmount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
             this.numRefundAmount.Name = "numRefundAmount";
-            this.numRefundAmount.Size = new System.Drawing.Size(115, 23);
+            this.numRefundAmount.Size = new System.Drawing.Size(115, 27);
             this.numRefundAmount.TabIndex = 3;
-            this.numRefundAmount.Value = new decimal(new int[] { 50, 0, 0, 131072 });
-            //
+            this.numRefundAmount.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            // 
             // lblOriginalRrn
-            //
+            // 
             this.lblOriginalRrn.AutoSize = true;
             this.lblOriginalRrn.Location = new System.Drawing.Point(10, 89);
             this.lblOriginalRrn.Name = "lblOriginalRrn";
-            this.lblOriginalRrn.Size = new System.Drawing.Size(180, 15);
+            this.lblOriginalRrn.Size = new System.Drawing.Size(202, 20);
             this.lblOriginalRrn.TabIndex = 4;
             this.lblOriginalRrn.Text = "Original RRN / الرقم المرجعي:";
-            //
+            // 
             // txtOriginalRrn
-            //
+            // 
             this.txtOriginalRrn.Location = new System.Drawing.Point(205, 86);
             this.txtOriginalRrn.MaxLength = 12;
             this.txtOriginalRrn.Name = "txtOriginalRrn";
-            this.txtOriginalRrn.Size = new System.Drawing.Size(115, 23);
+            this.txtOriginalRrn.Size = new System.Drawing.Size(115, 27);
             this.txtOriginalRrn.TabIndex = 5;
             this.txtOriginalRrn.Text = "434615455456";
-            //
+            // 
             // lblOriginalDate
-            //
+            // 
             this.lblOriginalDate.AutoSize = true;
             this.lblOriginalDate.Location = new System.Drawing.Point(10, 119);
             this.lblOriginalDate.Name = "lblOriginalDate";
-            this.lblOriginalDate.Size = new System.Drawing.Size(180, 15);
+            this.lblOriginalDate.Size = new System.Drawing.Size(192, 20);
             this.lblOriginalDate.TabIndex = 6;
             this.lblOriginalDate.Text = "Original date / تاريخ العملية:";
-            //
+            // 
             // dtpOriginalDate
-            //
+            // 
             this.dtpOriginalDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpOriginalDate.Location = new System.Drawing.Point(205, 116);
             this.dtpOriginalDate.Name = "dtpOriginalDate";
-            this.dtpOriginalDate.Size = new System.Drawing.Size(115, 23);
+            this.dtpOriginalDate.Size = new System.Drawing.Size(115, 27);
             this.dtpOriginalDate.TabIndex = 7;
             this.dtpOriginalDate.Value = new System.DateTime(2024, 12, 11, 0, 0, 0, 0);
-            //
+            // 
             // Trans_richTextBox
-            //
-            this.Trans_richTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            // 
+            this.Trans_richTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.Trans_richTextBox.BackColor = System.Drawing.SystemColors.Window;
             this.Trans_richTextBox.Font = new System.Drawing.Font("Consolas", 10F);
@@ -515,10 +587,10 @@ namespace CDLL
             this.Trans_richTextBox.Size = new System.Drawing.Size(393, 520);
             this.Trans_richTextBox.TabIndex = 18;
             this.Trans_richTextBox.Text = "";
-            //
+            // 
             // Form1
-            //
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1100, 545);
             this.Controls.Add(this.lblUsb);
