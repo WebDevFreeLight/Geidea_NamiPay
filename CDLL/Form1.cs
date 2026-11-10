@@ -37,6 +37,7 @@
 //   Cash payment                btnCashPayment         (no terminal call)                 دفع نقدي عند الاستقبال
 //   Terminal mapping            btnMapping             TerminalMappingForm                ربط الجهاز بالحاسوب
 //   Sync pending                btnSyncPending         pending JSON -> database           مزامنة المعلّق
+//   ↻ (next to COM port)        btnRefreshPorts        reload the COM port list           تحديث قائمة منافذ COM
 //   Clear log / Save defaults   btnClearLog / btnSaveDefaults                              مسح السجل / حفظ الافتراضي
 // =====================================================================================
 
@@ -63,6 +64,7 @@ namespace CDLL
     {
         private PaymentServices _services;
         private bool _ownsServices;
+        private string _title;   // EN: window title without the "waiting" counter   AR: عنوان النافذة بدون عدّاد الانتظار
 
         // EN: This PC's terminal from TerminalMappings (null = app.config values).   AR: جهاز هذا الحاسوب (null = قيم app.config).
         private TerminalMapping _mapping;
@@ -86,7 +88,9 @@ namespace CDLL
         /// </summary>
         private async void Form1_Load(object sender, EventArgs e)
         {
-            SetNumber(numComPort, "PaymentMachinePort", 5);
+            int configuredPort;
+            if (!int.TryParse(Setting("PaymentMachinePort", "0"), NumberStyles.None, CultureInfo.InvariantCulture, out configuredPort))
+                configuredPort = 0;
             SetNumber(numBaudRate, "BaudRate", 38400);
             SetNumber(numParity, "Parity", 0);
             SetNumber(numDataBits, "DataBits", 8);
@@ -110,10 +114,29 @@ namespace CDLL
             }
             if (_services.IsSimulator)
                 Text += "   [SIMULATOR - no real payments / محاكاة - لا مدفوعات حقيقية]";
+            _title = Text;
 
             LogLine("Storage / التخزين: " + _services.Storage.StoreName + " -> " + _services.Storage.DataFolder);
+            await ComPortPicker.RefreshAsync(cmbComPort, configuredPort);   // EN: background scan   AR: بحث في الخلفية
             await LoadMappingAsync();
             await RefreshPendingAsync();
+        }
+
+        /// <summary>
+        /// EN: [↻] Reloads the COM port list (after plugging the terminal in), keeping the chosen port.
+        /// AR: [↻] يعيد تحميل قائمة منافذ COM (بعد توصيل الجهاز) مع الإبقاء على المنفذ المختار.
+        /// </summary>
+        private async void btnRefreshPorts_Click(object sender, EventArgs e)
+        {
+            btnRefreshPorts.Enabled = false;
+            try
+            {
+                await ComPortPicker.RefreshAsync(cmbComPort, ComPortPicker.SelectedPort(cmbComPort));
+            }
+            finally
+            {
+                btnRefreshPorts.Enabled = true;
+            }
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -208,7 +231,7 @@ namespace CDLL
             string invalid = connection.Validate();
             if (invalid != null)
             {
-                ShowInputError(transport == TerminalTransport.Com ? (Control)numComPort : txtIp, invalid);
+                ShowInputError(transport == TerminalTransport.Com ? (Control)cmbComPort : txtIp, invalid);
                 return;
             }
 
@@ -216,7 +239,9 @@ namespace CDLL
             try
             {
                 LogStart(label, connection.Describe());
-                TerminalResult result = await operation(connection);
+                TerminalResult result;
+                using (ShowWaiting(label))
+                    result = await operation(connection);
                 LogResult(result);
                 await SaveAndNotifyAsync(PaymentTransactionRecord.FromResult(result, CurrentContext()));
                 ShowOutcome(label, result);
@@ -230,6 +255,17 @@ namespace CDLL
                 SetBusy(false);
                 await RefreshPendingAsync();
             }
+        }
+
+        /// <summary>
+        /// EN: Shows "label ... 7 s" in the title bar while the terminal works, so the window never looks frozen.
+        ///     Dispose() puts the normal title back.
+        /// AR: يعرض "العملية ... 7 ث" في شريط العنوان أثناء عمل الجهاز حتى لا تبدو النافذة متجمّدة، و Dispose() يعيد العنوان.
+        /// </summary>
+        private IDisposable ShowWaiting(string label)
+        {
+            return new WaitingCounter(seconds => Text = _title + "   —   " + label + " … " + seconds + " s",
+                                      () => Text = _title);
         }
 
         // =============================================================================
@@ -288,8 +324,26 @@ namespace CDLL
         /// </summary>
         private async void btnMapping_Click(object sender, EventArgs e)
         {
-            string reason;
-            if (!MappingAuthorization.IsCurrentUserAllowed(out reason))
+            // EN: Windows group lookups can take seconds on a domain PC: done on a background thread.
+            // AR: البحث في مجموعات Windows قد يستغرق ثوانٍ على حاسوب في نطاق، لذلك يتم على خيط خلفي.
+            btnMapping.Enabled = false;
+            Tuple<bool, string> access;
+            try
+            {
+                access = await Task.Run(() =>
+                {
+                    string why;
+                    bool ok = MappingAuthorization.IsCurrentUserAllowed(out why);
+                    return Tuple.Create(ok, why);
+                });
+            }
+            finally
+            {
+                btnMapping.Enabled = true;
+            }
+
+            string reason = access.Item2;
+            if (!access.Item1)
             {
                 MessageBox.Show(this, reason, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 await _services.Storage.SaveErrorAsync(new ErrorLogRecord { Source = "Form1.Mapping", Message = "Access denied / رفض الوصول", Details = reason });
@@ -366,7 +420,7 @@ namespace CDLL
             try
             {
                 Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                SaveSetting(config, "PaymentMachinePort", numComPort.Value);
+                SaveSetting(config, "PaymentMachinePort", ComPortPicker.SelectedPort(cmbComPort));
                 SaveSetting(config, "BaudRate", numBaudRate.Value);
                 SaveSetting(config, "Parity", numParity.Value);
                 SaveSetting(config, "DataBits", numDataBits.Value);
@@ -455,7 +509,7 @@ namespace CDLL
                 return;
             }
 
-            numComPort.Value = Clamp(numComPort, mapping.ComPort);
+            ComPortPicker.Select(cmbComPort, mapping.ComPort);
             numBaudRate.Value = Clamp(numBaudRate, mapping.BaudRate);
             numParity.Value = Clamp(numParity, mapping.Parity);
             numDataBits.Value = Clamp(numDataBits, mapping.DataBits);
@@ -483,7 +537,7 @@ namespace CDLL
             return new TerminalConnection
             {
                 Transport = transport,
-                ComPort = (int)numComPort.Value,
+                ComPort = ComPortPicker.SelectedPort(cmbComPort),
                 BaudRate = (int)numBaudRate.Value,
                 Parity = (int)numParity.Value,
                 DataBits = (int)numDataBits.Value,
@@ -517,7 +571,7 @@ namespace CDLL
         {
             foreach (Button button in new[] { btnStatusUsb, btnStatusTcp, btnPurchaseUsb, btnPurchaseTcp, btnRefundUsb, btnRefundTcp,
                                               btnRepeatUsb, btnRepeatTcp, btnReconUsb, btnReconTcp, btnMerchant, btnTerminalId,
-                                              btnCashPayment, btnMapping, btnSyncPending, btnSaveDefaults })
+                                              btnCashPayment, btnMapping, btnSyncPending, btnSaveDefaults, btnRefreshPorts })
                 button.Enabled = !busy;
             UseWaitCursor = busy;
         }

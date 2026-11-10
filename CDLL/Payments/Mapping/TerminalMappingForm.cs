@@ -49,11 +49,26 @@ namespace CDLL.Payments.Mapping
             txtWorkstation.Text = Environment.MachineName.ToUpperInvariant();
             cmbTransport.SelectedItem = TerminalTransport.Com.ToString();
 
+            await ComPortPicker.RefreshAsync(cmbComPort, 0);   // EN: background scan, terminal port pre-selected   AR: بحث في الخلفية مع اختيار منفذ الجهاز
             IList<TerminalMapping> mappings = await ReloadListAsync();
             TerminalMapping mine = mappings == null ? null
                 : mappings.FirstOrDefault(m => string.Equals(m.Workstation, txtWorkstation.Text, StringComparison.OrdinalIgnoreCase));
             if (mine != null)
                 ShowMapping(mine);
+        }
+
+        /// <summary>EN: [↻] Reloads the COM port list, keeping the chosen port.  AR: [↻] يعيد تحميل قائمة منافذ COM مع الإبقاء على المنفذ المختار.</summary>
+        private async void btnRefreshPorts_Click(object sender, EventArgs e)
+        {
+            btnRefreshPorts.Enabled = false;
+            try
+            {
+                await ComPortPicker.RefreshAsync(cmbComPort, ComPortPicker.SelectedPort(cmbComPort));
+            }
+            finally
+            {
+                btnRefreshPorts.Enabled = true;
+            }
         }
 
         private void lstMappings_SelectedIndexChanged(object sender, EventArgs e)
@@ -105,8 +120,10 @@ namespace CDLL.Payments.Mapping
 
             await RunBusyAsync(async () =>
             {
-                SetStatus("Testing / جارٍ الاختبار: " + mapping.ToConnection().Describe());
-                TerminalResult result = await _services.Terminal.CheckStatusAsync(mapping.ToConnection());
+                string target = mapping.ToConnection().Describe();
+                TerminalResult result;
+                using (new WaitingCounter(seconds => SetStatus("Testing / جارٍ الاختبار: " + target + " … " + seconds + " s"), () => { }))
+                    result = await _services.Terminal.CheckStatusAsync(mapping.ToConnection());
                 var context = new PaymentContext { TerminalName = mapping.TerminalName, Department = mapping.Department };
                 await _services.Storage.SaveTransactionAsync(PaymentTransactionRecord.FromResult(result, context));
 
@@ -170,7 +187,7 @@ namespace CDLL.Payments.Mapping
             txtTerminalName.Text = m.TerminalName;
             txtDepartment.Text = m.Department;
             cmbTransport.SelectedItem = m.Transport.ToString();
-            numComPort.Value = Clamp(numComPort, m.ComPort);
+            ComPortPicker.Select(cmbComPort, m.ComPort);
             numBaudRate.Value = Clamp(numBaudRate, m.BaudRate);
             numParity.Value = Clamp(numParity, m.Parity);
             numDataBits.Value = Clamp(numDataBits, m.DataBits);
@@ -188,7 +205,7 @@ namespace CDLL.Payments.Mapping
                 TerminalName = txtTerminalName.Text.Trim(),
                 Department = txtDepartment.Text.Trim(),
                 Transport = string.Equals(cmbTransport.SelectedItem as string, "Tcp", StringComparison.Ordinal) ? TerminalTransport.Tcp : TerminalTransport.Com,
-                ComPort = (int)numComPort.Value,
+                ComPort = ComPortPicker.SelectedPort(cmbComPort),
                 BaudRate = (int)numBaudRate.Value,
                 Parity = (int)numParity.Value,
                 DataBits = (int)numDataBits.Value,
@@ -213,7 +230,7 @@ namespace CDLL.Payments.Mapping
         private async Task RunBusyAsync(Func<Task> work)
         {
             UseWaitCursor = true;
-            btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = false;
+            btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = false;
             try
             {
                 await work();
@@ -225,7 +242,7 @@ namespace CDLL.Payments.Mapping
             }
             finally
             {
-                btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = true;
+                btnSave.Enabled = btnTest.Enabled = btnRemove.Enabled = btnRefreshPorts.Enabled = true;
                 UseWaitCursor = false;
             }
         }

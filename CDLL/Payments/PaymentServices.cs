@@ -1,7 +1,8 @@
 // =====================================================================================
 // EN: Builds the payment services from app.config, in one place:
 //       TerminalMode            Real (madaapi DLLs) | Simulator (fake terminal, NO real payments)
-//       TerminalTimeoutSeconds  watchdog for one terminal call (default 120)
+//       TerminalTimeoutSeconds  watchdog for one payment / refund / repeat / reconciliation call (default 120)
+//       TerminalStatusTimeoutSeconds  watchdog for Check status / Terminal ID / Merchant info (default 20)
 //       Storage.Provider        Sqlite | SqlServer | Json
 //       Storage.DataFolder      SQLite file, JSON files, pending\ fallback and logs\ (default %ProgramData%\CDLL\Payments)
 //       connectionStrings "PaymentsSqlServer"  used when Storage.Provider = SqlServer
@@ -41,12 +42,14 @@ namespace CDLL.Payments
             bool simulator = string.Equals(Setting("TerminalMode", "Real"), "Simulator", StringComparison.OrdinalIgnoreCase);
             IMadaNativeApi api = simulator ? (IMadaNativeApi)new SimulatorMadaApi() : new NativeMadaApi();
 
-            int timeoutSeconds;
-            if (!int.TryParse(Setting("TerminalTimeoutSeconds", "120"), NumberStyles.None, CultureInfo.InvariantCulture, out timeoutSeconds))
-                timeoutSeconds = 120;
-            timeoutSeconds = Math.Max(10, Math.Min(600, timeoutSeconds));
+            int timeoutSeconds = Seconds("TerminalTimeoutSeconds", 120, 10, 600);
+            int statusTimeoutSeconds = Seconds("TerminalStatusTimeoutSeconds", 20, 5, 120);
 
-            var terminal = new MadaTerminalService(api, OutcomeClassifier.FromConfig(), TimeSpan.FromSeconds(timeoutSeconds));
+            // EN: Real terminal: check the COM port before each USB call. The simulator has no real port.
+            // AR: الجهاز الفعلي: فحص منفذ COM قبل كل استدعاء USB. المحاكي ليس له منفذ فعلي.
+            var terminal = new MadaTerminalService(api, OutcomeClassifier.FromConfig(),
+                TimeSpan.FromSeconds(timeoutSeconds), TimeSpan.FromSeconds(statusTimeoutSeconds),
+                simulator ? null : new SerialPortProbe());
 
             string dataFolder = Environment.ExpandEnvironmentVariables(Setting("Storage.DataFolder", @"%ProgramData%\CDLL\Payments"));
             ITransactionStore store = CreateStore(Setting("Storage.Provider", "Sqlite"), dataFolder);
@@ -73,6 +76,14 @@ namespace CDLL.Payments
                 default:
                     throw new ConfigurationErrorsException("Storage.Provider must be Sqlite, SqlServer or Json. / يجب أن يكون Storage.Provider أحد: Sqlite أو SqlServer أو Json.");
             }
+        }
+
+        private static int Seconds(string key, int fallback, int min, int max)
+        {
+            int value;
+            if (!int.TryParse(Setting(key, fallback.ToString(CultureInfo.InvariantCulture)), NumberStyles.None, CultureInfo.InvariantCulture, out value))
+                value = fallback;
+            return Math.Max(min, Math.Min(max, value));
         }
 
         private static string Setting(string key, string fallback)

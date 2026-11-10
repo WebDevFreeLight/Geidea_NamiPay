@@ -62,6 +62,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -87,6 +88,8 @@
     <Compile Include="Simulator\MadaApiSimulator.cs" />
     <Compile Include="Payments\PaymentModels.cs" />
     <Compile Include="Payments\PaymentServices.cs" />
+    <Compile Include="Payments\ComPortPicker.cs" />
+    <Compile Include="Payments\WaitingCounter.cs" />
     <Compile Include="Payments\Integration\IHisNotifier.cs" />
     <Compile Include="Payments\Integration\HisBillingRules.cs" />
     <Compile Include="Payments\Mapping\MappingAuthorization.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Payments\Terminal\MadaNativeMethods.cs" />
     <Compile Include="Payments\Terminal\MadaTerminalService.cs" />
     <Compile Include="Payments\Terminal\OutcomeClassifier.cs" />
+    <Compile Include="Payments\Terminal\SerialPorts.cs" />
     <Compile Include="Payments\Terminal\TerminalRequests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

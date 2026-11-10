@@ -37,7 +37,8 @@ namespace CDLL.Payments.Mapping
             this.lblTransport = new System.Windows.Forms.Label();
             this.cmbTransport = new System.Windows.Forms.ComboBox();
             this.lblComPort = new System.Windows.Forms.Label();
-            this.numComPort = new System.Windows.Forms.NumericUpDown();
+            this.cmbComPort = new System.Windows.Forms.ComboBox();
+            this.btnRefreshPorts = new System.Windows.Forms.Button();
             this.lblBaudRate = new System.Windows.Forms.Label();
             this.numBaudRate = new System.Windows.Forms.NumericUpDown();
             this.lblParity = new System.Windows.Forms.Label();
@@ -62,7 +63,6 @@ namespace CDLL.Payments.Mapping
             this.btnClose = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.grpMapping.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numComPort)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numParity)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDataBits)).BeginInit();
@@ -80,7 +80,8 @@ namespace CDLL.Payments.Mapping
             this.grpMapping.Controls.Add(this.lblTransport);
             this.grpMapping.Controls.Add(this.cmbTransport);
             this.grpMapping.Controls.Add(this.lblComPort);
-            this.grpMapping.Controls.Add(this.numComPort);
+            this.grpMapping.Controls.Add(this.cmbComPort);
+            this.grpMapping.Controls.Add(this.btnRefreshPorts);
             this.grpMapping.Controls.Add(this.lblBaudRate);
             this.grpMapping.Controls.Add(this.numBaudRate);
             this.grpMapping.Controls.Add(this.lblParity);
@@ -182,27 +183,25 @@ namespace CDLL.Payments.Mapping
             this.lblComPort.TabIndex = 8;
             this.lblComPort.Text = "COM port / منفذ COM:";
             //
-            // numComPort
+            // cmbComPort
             //
-            this.numComPort.Location = new System.Drawing.Point(200, 149);
-            this.numComPort.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numComPort.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numComPort.Name = "numComPort";
-            this.numComPort.Size = new System.Drawing.Size(195, 27);
-            this.numComPort.TabIndex = 9;
-            this.numComPort.Value = new decimal(new int[] {
-            8,
-            0,
-            0,
-            0});
+            this.cmbComPort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbComPort.DropDownWidth = 380;
+            this.cmbComPort.FormattingEnabled = true;
+            this.cmbComPort.Location = new System.Drawing.Point(200, 148);
+            this.cmbComPort.Name = "cmbComPort";
+            this.cmbComPort.Size = new System.Drawing.Size(160, 28);
+            this.cmbComPort.TabIndex = 9;
+            //
+            // btnRefreshPorts
+            //
+            this.btnRefreshPorts.Location = new System.Drawing.Point(365, 147);
+            this.btnRefreshPorts.Name = "btnRefreshPorts";
+            this.btnRefreshPorts.Size = new System.Drawing.Size(30, 30);
+            this.btnRefreshPorts.TabIndex = 22;
+            this.btnRefreshPorts.Text = "↻";
+            this.btnRefreshPorts.UseVisualStyleBackColor = true;
+            this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshPorts_Click);
             //
             // lblBaudRate
             //
@@ -471,7 +470,6 @@ namespace CDLL.Payments.Mapping
             this.Load += new System.EventHandler(this.TerminalMappingForm_Load);
             this.grpMapping.ResumeLayout(false);
             this.grpMapping.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numComPort)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudRate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numParity)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDataBits)).EndInit();
@@ -492,7 +490,8 @@ namespace CDLL.Payments.Mapping
         private System.Windows.Forms.Label lblTransport;
         private System.Windows.Forms.ComboBox cmbTransport;
         private System.Windows.Forms.Label lblComPort;
-        private System.Windows.Forms.NumericUpDown numComPort;
+        private System.Windows.Forms.ComboBox cmbComPort;
+        private System.Windows.Forms.Button btnRefreshPorts;
         private System.Windows.Forms.Label lblBaudRate;
         private System.Windows.Forms.NumericUpDown numBaudRate;
         private System.Windows.Forms.Label lblParity;

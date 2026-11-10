@@ -68,7 +68,8 @@ namespace CDLL
             this.btnSaveDefaults = new System.Windows.Forms.Button();
             this.grpConnection = new System.Windows.Forms.GroupBox();
             this.lblComPort = new System.Windows.Forms.Label();
-            this.numComPort = new System.Windows.Forms.NumericUpDown();
+            this.cmbComPort = new System.Windows.Forms.ComboBox();
+            this.btnRefreshPorts = new System.Windows.Forms.Button();
             this.lblBaudRate = new System.Windows.Forms.Label();
             this.numBaudRate = new System.Windows.Forms.NumericUpDown();
             this.lblParity = new System.Windows.Forms.Label();
@@ -102,7 +103,6 @@ namespace CDLL
             this.lblTerminal = new System.Windows.Forms.Label();
             this.lblStorage = new System.Windows.Forms.Label();
             this.grpConnection.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numComPort)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numParity)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDataBits)).BeginInit();
@@ -276,7 +276,8 @@ namespace CDLL
             // grpConnection
             // 
             this.grpConnection.Controls.Add(this.lblComPort);
-            this.grpConnection.Controls.Add(this.numComPort);
+            this.grpConnection.Controls.Add(this.cmbComPort);
+            this.grpConnection.Controls.Add(this.btnRefreshPorts);
             this.grpConnection.Controls.Add(this.lblBaudRate);
             this.grpConnection.Controls.Add(this.numBaudRate);
             this.grpConnection.Controls.Add(this.lblParity);
@@ -305,28 +306,26 @@ namespace CDLL
             this.lblComPort.TabIndex = 0;
             this.lblComPort.Text = "COM port / منفذ COM:";
             // 
-            // numComPort
-            // 
-            this.numComPort.Location = new System.Drawing.Point(205, 26);
-            this.numComPort.Maximum = new decimal(new int[] {
-            256,
-            0,
-            0,
-            0});
-            this.numComPort.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numComPort.Name = "numComPort";
-            this.numComPort.Size = new System.Drawing.Size(115, 27);
-            this.numComPort.TabIndex = 1;
-            this.numComPort.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-            // 
+            // cmbComPort
+            //
+            this.cmbComPort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbComPort.DropDownWidth = 380;
+            this.cmbComPort.FormattingEnabled = true;
+            this.cmbComPort.Location = new System.Drawing.Point(170, 26);
+            this.cmbComPort.Name = "cmbComPort";
+            this.cmbComPort.Size = new System.Drawing.Size(120, 28);
+            this.cmbComPort.TabIndex = 1;
+            //
+            // btnRefreshPorts
+            //
+            this.btnRefreshPorts.Location = new System.Drawing.Point(293, 25);
+            this.btnRefreshPorts.Name = "btnRefreshPorts";
+            this.btnRefreshPorts.Size = new System.Drawing.Size(30, 30);
+            this.btnRefreshPorts.TabIndex = 14;
+            this.btnRefreshPorts.Text = "↻";
+            this.btnRefreshPorts.UseVisualStyleBackColor = true;
+            this.btnRefreshPorts.Click += new System.EventHandler(this.btnRefreshPorts_Click);
+            //
             // lblBaudRate
             // 
             this.lblBaudRate.AutoSize = true;
@@ -737,7 +736,6 @@ namespace CDLL
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.grpConnection.ResumeLayout(false);
             this.grpConnection.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numComPort)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudRate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numParity)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDataBits)).EndInit();
@@ -773,7 +771,8 @@ namespace CDLL
         private System.Windows.Forms.Button btnSaveDefaults;
         private System.Windows.Forms.GroupBox grpConnection;
         private System.Windows.Forms.Label lblComPort;
-        private System.Windows.Forms.NumericUpDown numComPort;
+        private System.Windows.Forms.ComboBox cmbComPort;
+        private System.Windows.Forms.Button btnRefreshPorts;
         private System.Windows.Forms.Label lblBaudRate;
         private System.Windows.Forms.NumericUpDown numBaudRate;
         private System.Windows.Forms.Label lblParity;

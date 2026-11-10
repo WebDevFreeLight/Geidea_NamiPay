@@ -24,8 +24,8 @@
    **AR:** افتح `CDLL.sln` في Visual Studio.
 2. **EN:** Press **F5** to build and run.
    **AR:** اضغط **F5** للبناء والتشغيل.
-3. **EN:** In the window, set **Connection settings**: the COM port (from *Device Manager > Ports (COM & LPT)*), serial settings, the terminal IP and TCP port. Set **Transaction values**: amounts, original RRN and date. Everything is editable; nothing is hard-coded.
-   **AR:** في النافذة اضبط **إعدادات الاتصال**: منفذ COM (من *إدارة الأجهزة > المنافذ (COM و LPT)*)، إعدادات المنفذ التسلسلي، عنوان IP للجهاز ومنفذ TCP. واضبط **قيم العملية**: المبالغ والرقم المرجعي والتاريخ الأصليين. كل شيء قابل للتعديل، ولا توجد قيم مكتوبة مباشرة.
+3. **EN:** In the window, set **Connection settings**: the COM port (drop-down with the *Device Manager* names; the PAX terminal is marked `[terminal]`, ↻ reloads the list after plugging it in), serial settings, the terminal IP and TCP port. Set **Transaction values**: amounts, original RRN and date. Everything is editable; nothing is hard-coded.
+   **AR:** في النافذة اضبط **إعدادات الاتصال**: منفذ COM (قائمة منسدلة بأسماء *إدارة الأجهزة*، وجهاز PAX مُعلَّم `[terminal]`، وزر ↻ يحدّث القائمة بعد توصيله)، إعدادات المنفذ التسلسلي، عنوان IP للجهاز ومنفذ TCP. واضبط **قيم العملية**: المبالغ والرقم المرجعي والتاريخ الأصليين. كل شيء قابل للتعديل، ولا توجد قيم مكتوبة مباشرة.
 4. **EN:** The starting values come from `CDLL/app.config`. **Save defaults** writes the current values to `CDLL.exe.config`. Rebuilding copies `app.config` over it again, so put permanent defaults in `app.config`.
    **AR:** القيم الأولية تأتي من `CDLL/app.config`. زر **حفظ الافتراضي** يكتب القيم الحالية في `CDLL.exe.config`، وإعادة البناء تنسخ `app.config` فوقه مرة أخرى، لذلك ضع القيم الدائمة في `app.config`.
 

@@ -1,9 +1,10 @@
 // =====================================================================================
 // EN: IPaymentTerminalService for mada / SPAN terminals, on top of IMadaNativeApi (real DLL, simulator or test fake).
 //     For each operation it: validates the input, builds the request string, allocates the output buffers,
-//     runs the DLL call on a background thread (Task.Run) behind a one-call-at-a-time gate, waits at most
-//     "TerminalTimeoutSeconds", reads every returned field (card number masked, expiry never read) and
-//     classifies the outcome with OutcomeClassifier.
+//     checks the COM port is there and free (USB only, 3 s), runs the DLL call on a background thread (Task.Run)
+//     behind a one-call-at-a-time gate, waits at most "TerminalTimeoutSeconds" (payments) or
+//     "TerminalStatusTimeoutSeconds" (status / terminal ID / merchant), reads every returned field (card number
+//     masked, expiry never read) and classifies the outcome with OutcomeClassifier.
 // AR: تطبيق IPaymentTerminalService لأجهزة مدى / SPAN فوق IMadaNativeApi (المكتبة الفعلية أو المحاكي أو نسخة اختبار).
 //     لكل عملية: يتحقق من المدخلات، يبني نص الطلب، يجهّز مخازن المخرجات، يشغّل استدعاء المكتبة على خيط خلفي
 //     (Task.Run) مع السماح باستدعاء واحد فقط في كل مرة، ينتظر بحد أقصى "TerminalTimeoutSeconds"، يقرأ كل الحقول
@@ -21,21 +22,34 @@ namespace CDLL.Payments.Terminal
 {
     public sealed class MadaTerminalService : IPaymentTerminalService
     {
+        /// <summary>EN: Default watchdog for Check status / Terminal ID / Merchant info (the terminal answers in ~1-2 s).  AR: المهلة الافتراضية لفحص الحالة ورقم الجهاز وبيانات التاجر.</summary>
+        public static readonly TimeSpan DefaultStatusTimeout = TimeSpan.FromSeconds(20);
+
+        /// <summary>EN: Time limit of the COM port check before each USB call.  AR: مهلة فحص منفذ COM قبل كل استدعاء USB.</summary>
+        public static readonly TimeSpan PortCheckTimeout = TimeSpan.FromSeconds(3);
+
         private readonly IMadaNativeApi _api;
         private readonly OutcomeClassifier _classifier;
         private readonly TimeSpan _timeout;
+        private readonly TimeSpan _statusTimeout;
+        private readonly IComPortProbe _portProbe;
 
         // EN: Only one DLL call at a time. Two calls on the same COM port fail with "Port open Failed".
         // AR: استدعاء واحد فقط في كل مرة. استدعاءان على نفس منفذ COM يفشلان بخطأ "Port open Failed".
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
 
-        public MadaTerminalService(IMadaNativeApi api, OutcomeClassifier classifier, TimeSpan timeout)
+        /// <param name="timeout">EN: watchdog for payments, refunds, repeat, reconciliation.  AR: المهلة للعمليات المالية والتسوية.</param>
+        /// <param name="statusTimeout">EN: shorter watchdog for Check status / Terminal ID / Merchant info.  AR: مهلة أقصر لفحص الحالة ورقم الجهاز وبيانات التاجر.</param>
+        /// <param name="portProbe">EN: quick COM port check before each USB call; null = no check (tests, simulator).  AR: فحص سريع للمنفذ، و null = بدون فحص.</param>
+        public MadaTerminalService(IMadaNativeApi api, OutcomeClassifier classifier, TimeSpan timeout, TimeSpan? statusTimeout = null, IComPortProbe portProbe = null)
         {
             if (api == null) throw new ArgumentNullException("api");
             if (classifier == null) throw new ArgumentNullException("classifier");
             _api = api;
             _classifier = classifier;
             _timeout = timeout;
+            _statusTimeout = statusTimeout ?? (timeout < DefaultStatusTimeout ? timeout : DefaultStatusTimeout);
+            _portProbe = portProbe;
         }
 
         // =============================================================================
@@ -221,13 +235,41 @@ namespace CDLL.Payments.Terminal
 
             result.StartedAtUtc = DateTime.UtcNow;
             var stopwatch = Stopwatch.StartNew();
+
+            // EN: USB/COM: make sure the port exists and is free BEFORE the DLL call, so a wrong / unplugged / busy port
+            //     fails in seconds instead of leaving the DLL waiting.
+            // AR: USB/COM: التأكد من وجود المنفذ وأنه غير مستخدم قبل استدعاء المكتبة، حتى يفشل المنفذ الخاطئ أو المفصول
+            //     أو المشغول خلال ثوانٍ بدلاً من انتظار المكتبة.
+            if (connection.Transport == TerminalTransport.Com && _portProbe != null)
+            {
+                string portProblem;
+                try
+                {
+                    portProblem = await _portProbe.CheckAsync(connection.ComPort, PortCheckTimeout).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    portProblem = ex.GetType().Name + ": " + ex.Message;
+                }
+
+                if (portProblem != null)
+                {
+                    _gate.Release();
+                    result.DurationMs = stopwatch.ElapsedMilliseconds;
+                    result.Outcome = TransactionOutcome.NoResponse;
+                    result.ErrorMessage = portProblem;
+                    return result;
+                }
+            }
+
             Task<IntPtr> call = Task.Run(nativeCall);
 
             // EN: Release the gate only when the DLL really returns: it can outlive the watchdog below.
             // AR: يُحرَّر القفل فقط عندما تعود المكتبة فعلاً، لأنها قد تستمر بعد انتهاء المراقب أدناه.
             call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
 
-            Task finished = await Task.WhenAny(call, Task.Delay(_timeout)).ConfigureAwait(false);
+            TimeSpan timeout = IsQuickCheck(result.Operation) ? _statusTimeout : _timeout;
+            Task finished = await Task.WhenAny(call, Task.Delay(timeout)).ConfigureAwait(false);
             result.DurationMs = stopwatch.ElapsedMilliseconds;
 
             if (finished != call)
@@ -235,7 +277,7 @@ namespace CDLL.Payments.Terminal
                 result.Outcome = TransactionOutcome.Timeout;
                 result.ErrorMessage = string.Format(CultureInfo.InvariantCulture,
                     "No answer from the terminal within {0} s. Use Repeat last before charging again. / لا رد من الجهاز خلال {0} ثانية. استخدم إعادة آخر عملية قبل الخصم مرة أخرى.",
-                    (int)_timeout.TotalSeconds);
+                    (int)timeout.TotalSeconds);
                 return result;
             }
 
@@ -271,6 +313,12 @@ namespace CDLL.Payments.Terminal
                 return "No card was presented in time: the terminal stopped after " + seconds + " s (return code 8). / " +
                        "لم تُقدَّم البطاقة في الوقت المحدد: أوقف الجهاز العملية بعد " + seconds + " ثانية (رمز 8).";
             return "Cancelled on the terminal after " + seconds + " s (return code 8). / أُلغيت العملية على الجهاز بعد " + seconds + " ثانية (رمز 8).";
+        }
+
+        /// <summary>EN: Calls that need no card or bank: they get the short watchdog.  AR: استدعاءات لا تحتاج بطاقة أو بنكاً: تأخذ المهلة القصيرة.</summary>
+        private static bool IsQuickCheck(TerminalOperation operation)
+        {
+            return operation == TerminalOperation.CheckStatus || operation == TerminalOperation.TerminalId || operation == TerminalOperation.MerchantInfo;
         }
 
         private static TerminalResult NewResult(TerminalOperation operation, string request)
