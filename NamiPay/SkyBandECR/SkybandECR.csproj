@@ -105,10 +105,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CoreSkybandECR, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7fe49948211a0251, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\CoreSkybandECR\bin\x86\Debug\CoreSkybandECR.dll</HintPath>
-    </Reference>
     <Reference Include="CustomMarshalers" />
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.5.0, Culture=neutral, PublicKeyToken=8985beaab7ea3f04, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft-WindowsAPICodePack-Core.1.1.5\lib\net48\Microsoft.WindowsAPICodePack.dll</HintPath>
@@ -286,6 +282,12 @@
     <Content Include="VC_redist.x64.exe" />
     <Content Include="VC_redist.x86.exe" />
     <Resource Include="img\icon.ico.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CoreSkybandECR\CoreSkybandECR.csproj">
+      <Project>{efb9ac03-b251-4ddd-95a7-c143a376f760}</Project>
+      <Name>CoreSkybandECR</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

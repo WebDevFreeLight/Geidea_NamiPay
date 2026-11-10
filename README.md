@@ -44,7 +44,7 @@
 | Terminal mapping | Assign / move a terminal to a workstation (authorized users only) | ربط أو نقل جهاز إلى حاسوب (للمصرّح لهم فقط) | - |
 | Sync pending | Insert the records saved as JSON while the database was down | إدراج السجلات المحفوظة كـ JSON أثناء تعطل القاعدة | - |
 
-**EN:** Each button shows the outcome (Approved, Declined, Cancelled, Timeout, CancelledOrTimeout, NoResponse, Failed, Error, Ok) and the return code in a message box, prints every field the terminal returned on the right, and **saves the result**. Fill **Patient MRN** / **Invoice no** to link the payment to the patient's bill.
+**EN:** Each button shows the outcome (Approved, Declined, Cancelled, Timeout, NoResponse, Failed, Error, Ok) and the return code in a message box, prints every field the terminal returned on the right, and **saves the result**. Fill **Patient MRN** / **Invoice no** to link the payment to the patient's bill.
 **AR:** كل زر يعرض النتيجة ورمز الإرجاع في رسالة، ويطبع كل الحقول التي أعادها الجهاز على اليمين، **ويحفظ النتيجة**. املأ **رقم الملف** و**رقم الفاتورة** لربط الدفع بفاتورة المريض.
 
 **EN:** Amounts are typed in SAR on the form and sent in **halalas**: 43.71 SAR -> `4371`.

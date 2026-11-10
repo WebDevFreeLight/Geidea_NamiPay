@@ -38,7 +38,7 @@ namespace CDLL.Tests.Terminal
         [InlineData(0, "000", TransactionOutcome.Approved)]    // EN: paid                       AR: تم الدفع
         [InlineData(0, "100", TransactionOutcome.Declined)]    // EN: refused by the bank         AR: رفض البنك
         [InlineData(0, "400", TransactionOutcome.Cancelled)]   // EN: cancel response code        AR: رمز إلغاء من البنك
-        [InlineData(8, null, TransactionOutcome.CancelledOrTimeout)] // EN: cancelled or no card in time   AR: أُلغيت أو انتهت مهلة البطاقة
+        [InlineData(8, null, TransactionOutcome.Cancelled)]    // EN: code 8 at once = cancel pressed   AR: رمز 8 فوراً = ضُغط الإلغاء
         [InlineData(0, "911", TransactionOutcome.Timeout)]     // EN: host timeout code           AR: رمز انتهاء مهلة البنك
         [InlineData(-4, null, TransactionOutcome.Timeout)]     // EN: communication timeout       AR: انتهاء مهلة الاتصال
         [InlineData(-3, null, TransactionOutcome.NoResponse)]  // EN: no terminal                 AR: لا يوجد جهاز
@@ -56,16 +56,32 @@ namespace CDLL.Tests.Terminal
         }
 
         [Fact]
-        public async Task Return_code_8_tells_the_cashier_it_was_cancelled_or_timed_out()
+        public async Task Return_code_8_before_the_card_timeout_is_Cancelled()
         {
             _fake.ReturnCode = OutcomeClassifier.CancelledOrTimeoutReturnCode;
 
             TerminalResult result = await Service().PurchaseAsync(Com8, 0.01m);
 
-            Assert.Equal(TransactionOutcome.CancelledOrTimeout, result.Outcome);
+            Assert.Equal(TransactionOutcome.Cancelled, result.Outcome);
             Assert.False(result.IsSuccess);
+            Assert.Contains("Cancelled on the terminal after", result.ErrorMessage);
             Assert.Contains("return code 8", result.ErrorMessage);
-            Assert.Contains("Repeat last", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task Return_code_8_after_the_card_timeout_is_Timeout()
+        {
+            // EN: Card timeout shortened to 200 ms so the test does not wait 15 s.   AR: مهلة البطاقة 200 ملي ثانية حتى لا ينتظر الاختبار 15 ثانية.
+            var classifier = new OutcomeClassifier(new[] { "000" }, null, null, TimeSpan.FromMilliseconds(200));
+            var service = new MadaTerminalService(_fake, classifier, TimeSpan.FromSeconds(10));
+            _fake.ReturnCode = OutcomeClassifier.CancelledOrTimeoutReturnCode;
+            _fake.DelayMs = 300;
+
+            TerminalResult result = await service.PurchaseAsync(Com8, 0.01m);
+
+            Assert.Equal(TransactionOutcome.Timeout, result.Outcome);
+            Assert.True(result.DurationMs >= 200);
+            Assert.Contains("No card was presented in time", result.ErrorMessage);
         }
 
         [Fact]

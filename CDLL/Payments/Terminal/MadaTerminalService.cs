@@ -225,7 +225,7 @@ namespace CDLL.Payments.Terminal
 
             // EN: Release the gate only when the DLL really returns: it can outlive the watchdog below.
             // AR: يُحرَّر القفل فقط عندما تعود المكتبة فعلاً، لأنها قد تستمر بعد انتهاء المراقب أدناه.
-            2  call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
+            call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
 
             Task finished = await Task.WhenAny(call, Task.Delay(_timeout)).ConfigureAwait(false);
             result.DurationMs = stopwatch.ElapsedMilliseconds;
@@ -270,10 +270,7 @@ namespace CDLL.Payments.Terminal
             if (r.Outcome == TransactionOutcome.Timeout)
                 return "No card was presented in time: the terminal stopped after " + seconds + " s (return code 8). / " +
                        "لم تُقدَّم البطاقة في الوقت المحدد: أوقف الجهاز العملية بعد " + seconds + " ثانية (رمز 8).";
-            if (r.Outcome == TransactionOutcome.Cancelled)
-                return "Cancelled on the terminal after " + seconds + " s (return code 8). / أُلغيت العملية على الجهاز بعد " + seconds + " ثانية (رمز 8).";
-            return "Cancelled on the terminal, or no card was presented in time (return code 8). Check the terminal screen; use Repeat last if unsure. / " +
-                   "أُلغيت العملية على الجهاز أو لم تُقدَّم البطاقة في الوقت المحدد (رمز 8). راجع شاشة الجهاز، واستخدم إعادة آخر عملية عند الشك.";
+            return "Cancelled on the terminal after " + seconds + " s (return code 8). / أُلغيت العملية على الجهاز بعد " + seconds + " ثانية (رمز 8).";
         }
 
         private static TerminalResult NewResult(TerminalOperation operation, string request)

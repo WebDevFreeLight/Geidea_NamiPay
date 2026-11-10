@@ -43,6 +43,7 @@ namespace CDLL.Tests.Fakes
 
         public Exception Throw;
         public ManualResetEventSlim Gate;   // EN: when set, calls wait on it (terminal never answers)   AR: عند تعيينه تنتظر الاستدعاءات
+        public int DelayMs;                 // EN: how long the "terminal" takes to answer   AR: مدة رد "الجهاز"
 
         // EN: What the "terminal" received.   AR: ما استلمه "الجهاز".
         public string LastFunction;
@@ -149,6 +150,8 @@ namespace CDLL.Tests.Fakes
             LastFunction = function;
             LastRequest = Encoding.ASCII.GetString(request, 0, length[0]);
             LastCallThreadId = Thread.CurrentThread.ManagedThreadId;
+            if (DelayMs > 0)
+                Thread.Sleep(DelayMs);
             if (Gate != null)
                 Gate.Wait();
             if (Throw != null)

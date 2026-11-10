@@ -71,8 +71,8 @@ namespace CDLL.Tests.Terminal
         [InlineData(TerminalOperation.Purchase, 0, null, TransactionOutcome.Failed)]
         [InlineData(TerminalOperation.Purchase, -3, null, TransactionOutcome.NoResponse)]
         [InlineData(TerminalOperation.Purchase, -4, null, TransactionOutcome.Timeout)]
-        [InlineData(TerminalOperation.Purchase, 8, null, TransactionOutcome.CancelledOrTimeout)]
-        [InlineData(TerminalOperation.Refund, 8, null, TransactionOutcome.CancelledOrTimeout)]
+        [InlineData(TerminalOperation.Purchase, 8, null, TransactionOutcome.Cancelled)]
+        [InlineData(TerminalOperation.Refund, 8, null, TransactionOutcome.Cancelled)]
         [InlineData(TerminalOperation.Purchase, 7, "000", TransactionOutcome.Failed)]
         [InlineData(TerminalOperation.CheckStatus, 0, null, TransactionOutcome.Ok)]
         [InlineData(TerminalOperation.Reconciliation, 0, "500", TransactionOutcome.Ok)]
@@ -82,6 +82,26 @@ namespace CDLL.Tests.Terminal
         {
             var classifier = new OutcomeClassifier(new[] { "000" }, new[] { "C1" }, new[] { "T9" });
             Assert.Equal(expected, classifier.Classify(operation, returnCode, responseCode));
+        }
+
+        [Theory]
+        [InlineData(15505, TransactionOutcome.Timeout)]     // EN: seen on the A920Pro: no card in time   AR: لوحظ على الجهاز: لم تُقدَّم البطاقة
+        [InlineData(15000, TransactionOutcome.Timeout)]
+        [InlineData(14999, TransactionOutcome.Cancelled)]
+        [InlineData(3000, TransactionOutcome.Cancelled)]    // EN: cancel pressed   AR: ضُغط الإلغاء
+        public void Return_code_8_is_Timeout_or_Cancelled_by_duration(long durationMs, TransactionOutcome expected)
+        {
+            var classifier = new OutcomeClassifier(new[] { "000" }, null, null);   // EN: default card timeout 15 s
+            Assert.Equal(expected, classifier.Classify(TerminalOperation.Purchase, 8, null, durationMs));
+            Assert.Equal(expected, classifier.Classify(TerminalOperation.Refund, 8, null, durationMs));
+        }
+
+        [Fact]
+        public void Card_timeout_is_configurable()
+        {
+            var classifier = new OutcomeClassifier(new[] { "000" }, null, null, TimeSpan.FromSeconds(30));
+            Assert.Equal(TransactionOutcome.Cancelled, classifier.Classify(TerminalOperation.Purchase, 8, null, 15505));
+            Assert.Equal(TransactionOutcome.Timeout, classifier.Classify(TerminalOperation.Purchase, 8, null, 30000));
         }
 
         [Theory]

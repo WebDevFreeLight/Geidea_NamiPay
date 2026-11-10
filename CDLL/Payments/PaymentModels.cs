@@ -39,7 +39,7 @@ namespace CDLL.Payments
         Declined,    // EN: refused by the bank or the terminal                                             AR: مرفوض من البنك أو الجهاز
         Cancelled,   // EN: cancelled on the terminal by the customer or cashier                            AR: أُلغيت على الجهاز
         Timeout,     // EN: the terminal did not answer in time                                             AR: انتهت مهلة الانتظار
-        CancelledOrTimeout, // EN: DLL return code 8: cancelled on the terminal OR no card in time (the code does not say which)   AR: رمز 8: أُلغيت على الجهاز أو انتهت مهلة البطاقة
+        CancelledOrTimeout, // EN: no longer produced (code 8 is now Cancelled or Timeout); kept so older saved rows still load   AR: لم يعد يُستخدم، ويبقى لقراءة السجلات القديمة
         NoResponse,  // EN: no terminal reached (port could not be opened)                                  AR: لا يوجد رد من الجهاز
         Failed,      // EN: the terminal / DLL returned an error code                                       AR: الجهاز أو المكتبة أعاد رمز خطأ
         Error        // EN: exception in this program or the DLL (DLL missing, crash, bad input)            AR: استثناء في البرنامج أو المكتبة
