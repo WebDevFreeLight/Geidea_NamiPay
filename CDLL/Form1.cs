@@ -356,9 +356,9 @@ namespace CDLL
             using (var form = new TerminalMappingForm(_services))
             {
                 form.ShowDialog(this);
-                if (form.SavedMappingForThisPc != null)
+                if (form.ThisPcChanged)
                 {
-                    _mapping = form.SavedMappingForThisPc;
+                    _mapping = form.SavedMappingForThisPc;   // EN: this PC's ACTIVE mapping (null = none left)   AR: الربط الفعّال لهذا الحاسوب
                     ApplyMapping(_mapping);
                 }
             }
@@ -507,6 +507,9 @@ namespace CDLL
         /// <summary>EN: Puts the mapped terminal's settings in the connection boxes.  AR: يضع إعدادات الجهاز المرتبط في خانات الاتصال.</summary>
         private void ApplyMapping(TerminalMapping mapping)
         {
+            // EN: A mapped PC always uses its ACTIVE (default) provider; change it on the mapping screen ("Set active / default").
+            // AR: الحاسوب المرتبط يستخدم دائماً مزوّده الفعّال (الافتراضي)، ويُغيَّر من شاشة الربط ("تعيين كافتراضي").
+            cmbProvider.Enabled = mapping == null;
             if (mapping == null)
             {
                 lblTerminal.Text = "No terminal mapped to " + Environment.MachineName + " (app.config values) / لا يوجد جهاز مرتبط";
@@ -522,7 +525,7 @@ namespace CDLL
             if (!string.IsNullOrWhiteSpace(mapping.TcpIp)) txtIp.Text = mapping.TcpIp;
             if (!string.IsNullOrWhiteSpace(mapping.TcpPort)) txtTcpPort.Text = mapping.TcpPort;
 
-            lblTerminal.Text = "Terminal / الجهاز: " + mapping.Provider + " | " + mapping.TerminalName + " | " + mapping.Department + " | " + mapping.ToConnection().Describe();
+            lblTerminal.Text = "Active terminal / الجهاز الفعّال: " + mapping.Provider + " | " + mapping.TerminalName + " | " + mapping.Department + " | " + mapping.ToConnection().Describe();
             LogLine("Terminal mapping loaded / تم تحميل ربط الجهاز: " + lblTerminal.Text);
         }
 

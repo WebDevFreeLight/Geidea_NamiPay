@@ -58,6 +58,7 @@ namespace CDLL.Payments.Mapping
             this.colConnection = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colUpdatedBy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colProvider = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colActive = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblProvider = new System.Windows.Forms.Label();
             this.cmbProvider = new System.Windows.Forms.ComboBox();
             this.btnDetect = new System.Windows.Forms.Button();
@@ -66,6 +67,7 @@ namespace CDLL.Payments.Mapping
             this.btnSave = new System.Windows.Forms.Button();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnRemove = new System.Windows.Forms.Button();
+            this.btnSetActive = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.grpMapping.SuspendLayout();
@@ -378,6 +380,7 @@ namespace CDLL.Payments.Mapping
             this.cmbProvider.Name = "cmbProvider";
             this.cmbProvider.Size = new System.Drawing.Size(100, 28);
             this.cmbProvider.TabIndex = 24;
+            this.cmbProvider.SelectedIndexChanged += new System.EventHandler(this.cmbProvider_SelectedIndexChanged);
             //
             // btnDetect
             //
@@ -411,6 +414,11 @@ namespace CDLL.Payments.Mapping
             this.colProvider.Text = "Provider / المزوّد";
             this.colProvider.Width = 75;
             //
+            // colActive
+            //
+            this.colActive.Text = "Active / الفعّال";
+            this.colActive.Width = 90;
+            //
             // lstMappings
             //
             this.lstMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -420,6 +428,7 @@ namespace CDLL.Payments.Mapping
             this.colWorkstation,
             this.colProvider,
             this.colTerminal,
+            this.colActive,
             this.colDepartment,
             this.colConnection,
             this.colUpdatedBy});
@@ -492,6 +501,17 @@ namespace CDLL.Payments.Mapping
             this.btnRemove.UseVisualStyleBackColor = true;
             this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
             //
+            // btnSetActive
+            //
+            this.btnSetActive.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnSetActive.Location = new System.Drawing.Point(432, 460);
+            this.btnSetActive.Name = "btnSetActive";
+            this.btnSetActive.Size = new System.Drawing.Size(130, 46);
+            this.btnSetActive.TabIndex = 7;
+            this.btnSetActive.Text = "Set active / default\r\nتعيين كافتراضي";
+            this.btnSetActive.UseVisualStyleBackColor = true;
+            this.btnSetActive.Click += new System.EventHandler(this.btnSetActive_Click);
+            //
             // btnClose
             //
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -507,9 +527,9 @@ namespace CDLL.Payments.Mapping
             //
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblStatus.Location = new System.Drawing.Point(435, 460);
+            this.lblStatus.Location = new System.Drawing.Point(572, 460);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(395, 46);
+            this.lblStatus.Size = new System.Drawing.Size(258, 46);
             this.lblStatus.TabIndex = 5;
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             //
@@ -524,6 +544,7 @@ namespace CDLL.Payments.Mapping
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.btnRemove);
+            this.Controls.Add(this.btnSetActive);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.btnClose);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -576,6 +597,7 @@ namespace CDLL.Payments.Mapping
         private System.Windows.Forms.ColumnHeader colConnection;
         private System.Windows.Forms.ColumnHeader colUpdatedBy;
         private System.Windows.Forms.ColumnHeader colProvider;
+        private System.Windows.Forms.ColumnHeader colActive;
         private System.Windows.Forms.Label lblProvider;
         private System.Windows.Forms.ComboBox cmbProvider;
         private System.Windows.Forms.Button btnDetect;
@@ -584,6 +606,7 @@ namespace CDLL.Payments.Mapping
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnRemove;
+        private System.Windows.Forms.Button btnSetActive;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Label lblStatus;
     }

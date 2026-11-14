@@ -1,12 +1,12 @@
 // =====================================================================================
 // EN: Shared ADO.NET code for SQLite and SQL Server. The two subclasses only say how to open a connection
 //     and the few SQL differences (create-if-missing, insert-if-missing, date type).
-//     Tables: PaymentTransactions (every operation, every outcome), ErrorLog, TerminalMappings.
+//     Tables: PaymentTransactions (every operation, every outcome), ErrorLog, WorkstationTerminals (one per PC + provider, one active per PC; the old TerminalMappings table is copied once).
 //     SECURITY: every value is a parameter (@p...), never concatenated into SQL.
 //     Each write runs in its own database transaction, so a failure never leaves a half-written row.
 // AR: كود ADO.NET المشترك بين SQLite و SQL Server. الفئتان الفرعيتان تحددان فقط طريقة فتح الاتصال
 //     والاختلافات البسيطة في SQL (الإنشاء عند عدم الوجود، الإدراج عند عدم الوجود، نوع التاريخ).
-//     الجداول: PaymentTransactions (كل عملية وكل نتيجة)، ErrorLog، TerminalMappings.
+//     الجداول: PaymentTransactions (كل عملية وكل نتيجة)، ErrorLog، WorkstationTerminals (لكل حاسوب + مزوّد، وواحد فعّال لكل حاسوب).
 //     الأمان: كل قيمة تُرسل كمعامل (@p...) ولا تُدمج داخل نص SQL أبداً.
 //     كل عملية كتابة تتم داخل معاملة قاعدة بيانات خاصة بها، فلا يبقى سجل مكتوب جزئياً عند الفشل.
 // =====================================================================================
@@ -25,7 +25,11 @@ namespace CDLL.Payments.Storage
     {
         internal static readonly TableSchema Transactions = TableSchema.For<PaymentTransactionRecord>("PaymentTransactions", "Id");
         internal static readonly TableSchema Errors = TableSchema.For<ErrorLogRecord>("ErrorLog", "Id");
-        internal static readonly TableSchema Mappings = TableSchema.For<TerminalMapping>("TerminalMappings", "Workstation");
+        /// <summary>EN: One row per PC + provider ("WORKSTATION|Provider"), one active per PC.  AR: سجل لكل حاسوب + مزوّد، وواحد فعّال لكل حاسوب.</summary>
+        internal static readonly TableSchema Mappings = TableSchema.For<TerminalMapping>("WorkstationTerminals", "Id");
+
+        /// <summary>EN: Previous version: one row per PC. Copied into WorkstationTerminals once.  AR: النسخة السابقة: سجل لكل حاسوب، يُنسخ مرة واحدة.</summary>
+        internal static readonly TableSchema LegacyMappings = TableSchema.For<TerminalMapping>("TerminalMappings", "Workstation");
 
         public abstract string Name { get; }
 
@@ -65,6 +69,30 @@ namespace CDLL.Payments.Storage
                 Execute(connection, null, CreateIndexIfMissingSql(Transactions.Table, "IX_PaymentTransactions_CreatedAtUtc", "CreatedAtUtc"));
                 Execute(connection, null, CreateIndexIfMissingSql(Transactions.Table, "IX_PaymentTransactions_PatientMrn", "PatientMrn"));
                 Execute(connection, null, CreateIndexIfMissingSql(Transactions.Table, "IX_PaymentTransactions_InvoiceNo", "InvoiceNo"));
+                Execute(connection, null, CreateIndexIfMissingSql(Mappings.Table, "IX_WorkstationTerminals_Workstation", "Workstation"));
+                MigrateLegacyMappings(connection);
+            }
+        }
+
+        /// <summary>
+        /// EN: Copies the previous version's one-terminal-per-PC table into WorkstationTerminals (each becomes the PC's
+        ///     active mapping). Runs only while the new table is still empty; the old table is left untouched.
+        /// AR: ينسخ جدول النسخة السابقة (جهاز واحد لكل حاسوب) إلى WorkstationTerminals (كل ربط يصبح الفعّال للحاسوب).
+        ///     يعمل فقط والجدول الجديد فارغ، والجدول القديم لا يُعدّل.
+        /// </summary>
+        private void MigrateLegacyMappings(DbConnection connection)
+        {
+            if (ColumnNames(connection, LegacyMappings.Table).Count == 0)
+                return;   // EN: no old table   AR: لا يوجد جدول قديم
+            if (Convert.ToInt64(Scalar(connection, null, "SELECT COUNT(*) FROM " + QuoteTable(Mappings.Table)), CultureInfo.InvariantCulture) > 0)
+                return;
+
+            AddMissingColumns(connection, LegacyMappings);
+            foreach (TerminalMapping old in Query<TerminalMapping>(LegacyMappings, ""))
+            {
+                old.Normalize();
+                old.IsActive = true;
+                Insert(Mappings, old);
             }
         }
 
@@ -82,6 +110,7 @@ namespace CDLL.Payments.Storage
         {
             if (string.IsNullOrWhiteSpace(mapping.Workstation))
                 throw new ArgumentException("Workstation is required. / اسم الحاسوب مطلوب.");
+            mapping.Normalize();
 
             List<PropertyInfo> columns = Mappings.Columns.ToList();
             string assignments = string.Join(", ", columns.Where(c => c.Name != Mappings.Key).Select(c => c.Name + " = @" + c.Name));
@@ -92,31 +121,90 @@ namespace CDLL.Payments.Storage
             using (DbConnection connection = Open())
             using (DbTransaction transaction = connection.BeginTransaction())
             {
+                if (mapping.IsActive)
+                    Execute(connection, transaction, "UPDATE " + QuoteTable(Mappings.Table) + " SET IsActive = @p0 WHERE Workstation = @p1 AND Id <> @p2",
+                        P(false, mapping.Workstation, mapping.Id));
                 if (Execute(connection, transaction, update, Parameters(Mappings, mapping)) == 0)
                     Execute(connection, transaction, insert, Parameters(Mappings, mapping));
+                KeepOneActive(connection, transaction, mapping.Workstation, mapping.Id);
                 transaction.Commit();
             }
         }
 
-        public void DeleteMapping(string workstation)
+        public void DeleteMapping(string workstation, TerminalProvider provider)
         {
+            string ws = (workstation ?? "").Trim().ToUpperInvariant();
             using (DbConnection connection = Open())
             using (DbTransaction transaction = connection.BeginTransaction())
             {
-                Execute(connection, transaction, "DELETE FROM " + QuoteTable(Mappings.Table) + " WHERE Workstation = @p0",
-                    new[] { new KeyValuePair<string, object>("@p0", workstation) });
+                Execute(connection, transaction, "DELETE FROM " + QuoteTable(Mappings.Table) + " WHERE Id = @p0",
+                    P(TerminalMapping.MakeId(ws, provider)));
+                KeepOneActive(connection, transaction, ws, null);
+                transaction.Commit();
+            }
+        }
+
+        public void SetActiveMapping(string workstation, TerminalProvider provider)
+        {
+            string ws = (workstation ?? "").Trim().ToUpperInvariant();
+            string id = TerminalMapping.MakeId(ws, provider);
+            using (DbConnection connection = Open())
+            using (DbTransaction transaction = connection.BeginTransaction())
+            {
+                if (Execute(connection, transaction, "UPDATE " + QuoteTable(Mappings.Table) + " SET IsActive = @p0 WHERE Id = @p1", P(true, id)) == 0)
+                    throw new ArgumentException("No " + provider + " mapping is saved for " + ws + ". / لا يوجد ربط " + provider + " محفوظ لهذا الحاسوب.");
+                Execute(connection, transaction, "UPDATE " + QuoteTable(Mappings.Table) + " SET IsActive = @p0 WHERE Workstation = @p1 AND Id <> @p2",
+                    P(false, ws, id));
                 transaction.Commit();
             }
         }
 
         public TerminalMapping GetMapping(string workstation)
         {
-            return Query<TerminalMapping>(Mappings, " WHERE Workstation = @p0", workstation).FirstOrDefault();
+            return Query<TerminalMapping>(Mappings, " WHERE Workstation = @p0 AND IsActive = @p1",
+                (workstation ?? "").Trim().ToUpperInvariant(), true).FirstOrDefault();
         }
 
         public IList<TerminalMapping> GetMappings()
         {
-            return Query<TerminalMapping>(Mappings, " ORDER BY Workstation");
+            return Query<TerminalMapping>(Mappings, " ORDER BY Workstation, Provider");
+        }
+
+        /// <summary>
+        /// EN: Rule "a PC with mappings has exactly one active": if none is active, activate the preferred one
+        ///     (the one just saved) or else the PC's first one.
+        /// AR: قاعدة "الحاسوب الذي له ربطات له ربط فعّال واحد": إذا لم يوجد فعّال، يُفعّل المفضّل (المحفوظ للتو) أو الأول.
+        /// </summary>
+        private void KeepOneActive(DbConnection connection, DbTransaction transaction, string workstation, string preferredId)
+        {
+            string table = QuoteTable(Mappings.Table);
+            long active = Convert.ToInt64(Scalar(connection, transaction, "SELECT COUNT(*) FROM " + table + " WHERE Workstation = @p0 AND IsActive = @p1",
+                P(workstation, true)), CultureInfo.InvariantCulture);
+            if (active > 0)
+                return;
+
+            object id = preferredId ?? Scalar(connection, transaction, "SELECT MIN(Id) FROM " + table + " WHERE Workstation = @p0", P(workstation));
+            if (id != null && id != DBNull.Value)
+                Execute(connection, transaction, "UPDATE " + table + " SET IsActive = @p0 WHERE Id = @p1", P(true, id));
+        }
+
+        /// <summary>EN: Positional parameters @p0, @p1...  AR: معاملات بالترتيب @p0 و @p1...</summary>
+        private static KeyValuePair<string, object>[] P(params object[] values)
+        {
+            return values.Select((v, i) => new KeyValuePair<string, object>("@p" + i.ToString(CultureInfo.InvariantCulture), v)).ToArray();
+        }
+
+        private object Scalar(DbConnection connection, DbTransaction transaction, string sql, IEnumerable<KeyValuePair<string, object>> parameters = null)
+        {
+            using (DbCommand command = connection.CreateCommand())
+            {
+                command.Transaction = transaction;
+                command.CommandText = sql;
+                if (parameters != null)
+                    foreach (KeyValuePair<string, object> p in parameters)
+                        AddParameter(command, p.Key, p.Value);
+                return command.ExecuteScalar();
+            }
         }
 
         public IList<PaymentTransactionRecord> GetTransactions(DateTime fromUtc, DateTime toUtc)
@@ -136,20 +224,26 @@ namespace CDLL.Payments.Storage
         /// </summary>
         private void AddMissingColumns(DbConnection connection, TableSchema schema)
         {
-            var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            using (DbCommand command = connection.CreateCommand())
-            {
-                command.CommandText = ColumnNamesSql(schema.Table);
-                using (DbDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        existing.Add(Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture));
-            }
-
+            HashSet<string> existing = ColumnNames(connection, schema.Table);
             foreach (PropertyInfo column in schema.Columns.Where(c => !existing.Contains(c.Name)))
             {
                 string type = schema.SqlType(column, IsSqlServer).Replace(" NOT NULL", " NULL");
                 Execute(connection, null, AddColumnSql(schema.Table, column.Name + " " + type));
             }
+        }
+
+        /// <summary>EN: Column names of a table; empty when the table does not exist.  AR: أسماء أعمدة الجدول، وفارغة إذا لم يوجد.</summary>
+        private HashSet<string> ColumnNames(DbConnection connection, string table)
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = ColumnNamesSql(table);
+                using (DbDataReader reader = command.ExecuteReader())
+                    while (reader.Read())
+                        names.Add(Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture));
+            }
+            return names;
         }
 
         private void Insert(TableSchema schema, object record)
@@ -268,6 +362,7 @@ namespace CDLL.Payments.Storage
             if (type == typeof(string)) return Convert.ToString(value, CultureInfo.InvariantCulture);
             if (type == typeof(int)) return Convert.ToInt32(value, CultureInfo.InvariantCulture);
             if (type == typeof(long)) return Convert.ToInt64(value, CultureInfo.InvariantCulture);
+            if (type == typeof(bool)) return Convert.ToBoolean(value, CultureInfo.InvariantCulture);
             if (type.IsEnum) return Enum.Parse(type, Convert.ToString(value, CultureInfo.InvariantCulture));
             if (type == typeof(DateTime))
             {

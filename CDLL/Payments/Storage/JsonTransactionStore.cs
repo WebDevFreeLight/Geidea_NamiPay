@@ -2,7 +2,7 @@
 // EN: JSON back-end: one readable .json file per record, no database needed.
 //       <folder>\transactions\yyyy-MM-dd\<Id>.json
 //       <folder>\errors\yyyy-MM-dd\<Id>.json
-//       <folder>\mappings\<Workstation>.json
+//       <folder>\mappings\<WORKSTATION>_<Provider>.json   (one per PC + provider, one active per PC)
 //     Files are written atomically (temp file + rename), so a crash never leaves a half-written file.
 //     SECURITY: TypeNameHandling is off, so a tampered file cannot make the app create arbitrary types.
 // AR: تخزين JSON: ملف .json مقروء لكل سجل، بدون قاعدة بيانات.
@@ -38,6 +38,7 @@ namespace CDLL.Payments.Storage
             Directory.CreateDirectory(Path.Combine(_folder, "transactions"));
             Directory.CreateDirectory(Path.Combine(_folder, "errors"));
             Directory.CreateDirectory(Path.Combine(_folder, "mappings"));
+            LoadMappings();   // EN: upgrades files of the previous version   AR: يرقّي ملفات النسخة السابقة
         }
 
         public void SaveTransaction(PaymentTransactionRecord record)
@@ -58,31 +59,93 @@ namespace CDLL.Payments.Storage
         {
             if (string.IsNullOrWhiteSpace(mapping.Workstation))
                 throw new ArgumentException("Workstation is required. / اسم الحاسوب مطلوب.");
-            JsonFiles.WriteAtomic(MappingPath(mapping.Workstation), mapping);
+            mapping.Normalize();
+
+            if (mapping.IsActive)
+                foreach (TerminalMapping other in LoadMappings().Where(m => m.Workstation == mapping.Workstation && m.Id != mapping.Id && m.IsActive))
+                {
+                    other.IsActive = false;
+                    JsonFiles.WriteAtomic(MappingPath(other.Id), other);
+                }
+
+            JsonFiles.WriteAtomic(MappingPath(mapping.Id), mapping);
+            KeepOneActive(mapping.Workstation, mapping.Id);
         }
 
-        public void DeleteMapping(string workstation)
+        public void DeleteMapping(string workstation, TerminalProvider provider)
         {
-            string path = MappingPath(workstation);
+            string ws = (workstation ?? "").Trim().ToUpperInvariant();
+            string path = MappingPath(TerminalMapping.MakeId(ws, provider));
             if (File.Exists(path))
                 File.Delete(path);
+            KeepOneActive(ws, null);
+        }
+
+        public void SetActiveMapping(string workstation, TerminalProvider provider)
+        {
+            string ws = (workstation ?? "").Trim().ToUpperInvariant();
+            string id = TerminalMapping.MakeId(ws, provider);
+            List<TerminalMapping> mine = LoadMappings().Where(m => m.Workstation == ws).ToList();
+            if (!mine.Any(m => m.Id == id))
+                throw new ArgumentException("No " + provider + " mapping is saved for " + ws + ". / لا يوجد ربط " + provider + " محفوظ لهذا الحاسوب.");
+
+            foreach (TerminalMapping m in mine.Where(m => m.IsActive != (m.Id == id)))
+            {
+                m.IsActive = m.Id == id;
+                JsonFiles.WriteAtomic(MappingPath(m.Id), m);
+            }
         }
 
         public TerminalMapping GetMapping(string workstation)
         {
-            string path = MappingPath(workstation);
-            return File.Exists(path) ? JsonFiles.Read<TerminalMapping>(path) : null;
+            string ws = (workstation ?? "").Trim().ToUpperInvariant();
+            return LoadMappings().FirstOrDefault(m => m.Workstation == ws && m.IsActive);
         }
 
         public IList<TerminalMapping> GetMappings()
         {
-            string folder = Path.Combine(_folder, "mappings");
-            if (!Directory.Exists(folder))
-                return new List<TerminalMapping>();
-            return Directory.GetFiles(folder, "*.json")
-                .Select(JsonFiles.Read<TerminalMapping>)
+            return LoadMappings()
                 .OrderBy(m => m.Workstation, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(m => m.Provider)
                 .ToList();
+        }
+
+        /// <summary>
+        /// EN: Every mapping file. A file of the previous version (one per PC, no Id) is rewritten as that PC's
+        ///     active mapping under its new name.
+        /// AR: كل ملفات الربط. ملف النسخة السابقة (واحد لكل حاسوب بدون Id) يُعاد كتابته كربط فعّال باسمه الجديد.
+        /// </summary>
+        private List<TerminalMapping> LoadMappings()
+        {
+            string folder = Path.Combine(_folder, "mappings");
+            var mappings = new List<TerminalMapping>();
+            if (!Directory.Exists(folder))
+                return mappings;
+
+            foreach (string file in Directory.GetFiles(folder, "*.json"))
+            {
+                TerminalMapping m = JsonFiles.Read<TerminalMapping>(file);
+                if (string.IsNullOrEmpty(m.Id))
+                {
+                    m.Normalize();
+                    m.IsActive = true;
+                    JsonFiles.WriteAtomic(MappingPath(m.Id), m);
+                    if (!string.Equals(Path.GetFullPath(file), Path.GetFullPath(MappingPath(m.Id)), StringComparison.OrdinalIgnoreCase))
+                        File.Delete(file);
+                }
+                mappings.Add(m);
+            }
+            return mappings;
+        }
+
+        private void KeepOneActive(string workstation, string preferredId)
+        {
+            List<TerminalMapping> mine = LoadMappings().Where(m => m.Workstation == workstation).ToList();
+            if (mine.Count == 0 || mine.Any(m => m.IsActive))
+                return;
+            TerminalMapping first = mine.FirstOrDefault(m => m.Id == preferredId) ?? mine.OrderBy(m => m.Id, StringComparer.Ordinal).First();
+            first.IsActive = true;
+            JsonFiles.WriteAtomic(MappingPath(first.Id), first);
         }
 
         public IList<PaymentTransactionRecord> GetTransactions(DateTime fromUtc, DateTime toUtc)
@@ -100,9 +163,9 @@ namespace CDLL.Payments.Storage
             return rows.OrderBy(r => r.CreatedAtUtc).ToList();
         }
 
-        private string MappingPath(string workstation)
+        private string MappingPath(string id)
         {
-            return Path.Combine(_folder, "mappings", JsonFiles.SafeName(workstation.ToUpperInvariant()) + ".json");
+            return Path.Combine(_folder, "mappings", JsonFiles.SafeName(id) + ".json");
         }
 
         private static string Day(DateTime utc)

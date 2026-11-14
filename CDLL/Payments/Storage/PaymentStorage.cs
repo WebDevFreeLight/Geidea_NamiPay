@@ -106,9 +106,10 @@ namespace CDLL.Payments.Storage
             if (mapping == null || string.IsNullOrWhiteSpace(mapping.Workstation))
                 throw new ArgumentException("Workstation is required. / اسم الحاسوب مطلوب.", "mapping");
 
-            return Enqueue(() => Write(PendingJsonQueue.MappingKind, mapping.Workstation, mapping, s => s.SaveMapping(mapping),
-                "MAPPING " + mapping.Workstation + " -> " + mapping.TerminalName + " (" + mapping.Department + ") " +
-                mapping.ToConnection().Describe() + " by " + mapping.UpdatedBy));
+            mapping.Normalize();
+            return Enqueue(() => Write(PendingJsonQueue.MappingKind, mapping.Id, mapping, s => s.SaveMapping(mapping),
+                "MAPPING " + mapping.Workstation + " -> " + mapping.Provider + " " + mapping.TerminalName + " (" + mapping.Department + ") " +
+                mapping.ToConnection().Describe() + (mapping.IsActive ? " ACTIVE" : "") + " by " + mapping.UpdatedBy));
         }
 
         // =============================================================================
@@ -124,13 +125,29 @@ namespace CDLL.Payments.Storage
         /// EN: Removes a mapping. Throws if the store is down (no pending fallback: a delete must not run later by surprise).
         /// AR: حذف ربط. يرمي استثناءً إذا كان التخزين متعطلاً (بدون حفظ معلّق: الحذف يجب ألا يتم لاحقاً بشكل مفاجئ).
         /// </summary>
-        public Task<bool> DeleteMappingAsync(string workstation, string deletedBy)
+        public Task<bool> DeleteMappingAsync(string workstation, TerminalProvider provider, string deletedBy)
         {
             return Enqueue(() =>
             {
                 EnsureCreated();
-                _store.DeleteMapping(workstation);
-                _log.Write("MAPPING DELETED " + workstation + " by " + deletedBy);
+                _store.DeleteMapping(workstation, provider);
+                _log.Write("MAPPING DELETED " + workstation + " " + provider + " by " + deletedBy);
+                return true;
+            });
+        }
+
+        /// <summary>
+        /// EN: Makes this provider the PC's active (default) terminal. Throws if the store is down or the mapping
+        ///     is not saved (no pending fallback, same reason as delete).
+        /// AR: يجعل هذا المزوّد الجهاز الفعّال (الافتراضي) للحاسوب. يرمي استثناءً إذا كان التخزين متعطلاً أو الربط غير محفوظ.
+        /// </summary>
+        public Task<bool> SetActiveMappingAsync(string workstation, TerminalProvider provider, string changedBy)
+        {
+            return Enqueue(() =>
+            {
+                EnsureCreated();
+                _store.SetActiveMapping(workstation, provider);
+                _log.Write("MAPPING ACTIVE " + workstation + " -> " + provider + " by " + changedBy);
                 return true;
             });
         }

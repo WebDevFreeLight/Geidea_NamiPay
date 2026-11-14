@@ -53,10 +53,11 @@ namespace CDLL.Payments.Storage
 
             if (!sqlServer)
             {
-                if (type == typeof(int) || type == typeof(long)) return "INTEGER" + nullability;
+                if (type == typeof(int) || type == typeof(long) || type == typeof(bool)) return "INTEGER" + nullability;
                 return "TEXT" + nullability;   // EN: strings, enums (name), dates (ISO-8601 UTC)   AR: النصوص والتعدادات والتواريخ
             }
 
+            if (type == typeof(bool)) return "BIT" + nullability;
             if (type == typeof(int)) return "INT" + nullability;
             if (type == typeof(long)) return "BIGINT" + nullability;
             if (type == typeof(DateTime)) return "DATETIME2(3)" + nullability;

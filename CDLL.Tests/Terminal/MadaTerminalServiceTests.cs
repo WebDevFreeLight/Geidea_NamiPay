@@ -118,6 +118,19 @@ namespace CDLL.Tests.Terminal
             await WaitUntil(() => service.CheckStatusAsync(Com8).Result.Outcome == TransactionOutcome.Ok);
         }
 
+        [Fact]
+        public async Task Back_to_back_calls_are_never_busy()
+        {
+            // EN: The gate is free as soon as a result comes back (NamiPay runs Start session then Purchase at once).
+            // AR: القفل محرر فور عودة النتيجة (NamiPay ينفّذ بدء الجلسة ثم الشراء مباشرة).
+            MadaTerminalService service = Service();
+            for (int i = 0; i < 200; i++)
+            {
+                TerminalResult result = await service.CheckStatusAsync(Com8);
+                Assert.True(result.Outcome == TransactionOutcome.Ok, "call " + i + ": " + result.ErrorMessage);
+            }
+        }
+
         [Theory]
         [InlineData(0, TransactionOutcome.Ok)]
         [InlineData(-3, TransactionOutcome.NoResponse)]

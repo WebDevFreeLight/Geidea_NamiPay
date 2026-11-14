@@ -34,7 +34,8 @@ namespace CDLL.Tests
         public void SaveTransaction(PaymentTransactionRecord record) { Enter(); _inner.SaveTransaction(record); SavedTransactions.Add(record); }
         public void SaveError(ErrorLogRecord record) { Enter(); _inner.SaveError(record); SavedErrors.Add(record); }
         public void SaveMapping(TerminalMapping mapping) { Enter(); _inner.SaveMapping(mapping); }
-        public void DeleteMapping(string workstation) { Enter(); _inner.DeleteMapping(workstation); }
+        public void DeleteMapping(string workstation, TerminalProvider provider) { Enter(); _inner.DeleteMapping(workstation, provider); }
+        public void SetActiveMapping(string workstation, TerminalProvider provider) { Enter(); _inner.SetActiveMapping(workstation, provider); }
         public TerminalMapping GetMapping(string workstation) { Enter(); return _inner.GetMapping(workstation); }
         public IList<TerminalMapping> GetMappings() { Enter(); return _inner.GetMappings(); }
         public IList<PaymentTransactionRecord> GetTransactions(DateTime fromUtc, DateTime toUtc) { Enter(); return _inner.GetTransactions(fromUtc, toUtc); }

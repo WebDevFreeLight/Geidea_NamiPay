@@ -121,13 +121,71 @@ namespace CDLL.Tests.Storage
             Store.SaveMapping(changed);
 
             TerminalMapping loaded = Store.GetMapping("CASHIER-01");
+            changed.IsActive = true;   // EN: the only mapping of the PC is always the active one   AR: الربط الوحيد للحاسوب فعّال دائماً
             Assert.Equal(JsonConvert.SerializeObject(changed), JsonConvert.SerializeObject(loaded));
+            Assert.Equal("CASHIER-01|Geidea", loaded.Id);
             Assert.Equal(new[] { "CASHIER-01", "CASHIER-02" }, Store.GetMappings().Select(m => m.Workstation).ToArray());
             Assert.Null(Store.GetMapping("UNKNOWN-PC"));
 
-            Store.DeleteMapping("CASHIER-01");
+            Store.DeleteMapping("cashier-01 ", TerminalProvider.Geidea);
             Assert.Null(Store.GetMapping("CASHIER-01"));
             Assert.Single(Store.GetMappings());
+        }
+
+        [Fact]
+        public void Pc_keeps_both_providers_with_exactly_one_active()
+        {
+            Store.EnsureCreated();
+            Store.SaveMapping(TestRecords.Mapping("cashier-01", "A920-1"));            // EN: first one becomes active   AR: الأول يصبح فعّالاً
+            Store.SaveMapping(NamiPay("CASHIER-01", "SKY-1", active: false));
+            Store.SaveMapping(NamiPay("CASHIER-02", "SKY-2", active: false));
+
+            Assert.Equal(new[] { "CASHIER-01|Geidea", "CASHIER-01|NamiPay", "CASHIER-02|NamiPay" }, Store.GetMappings().Select(m => m.Id).ToArray());
+            Assert.Equal(TerminalProvider.Geidea, Store.GetMapping("CASHIER-01").Provider);
+            Assert.Equal("SKY-2", Store.GetMapping("CASHIER-02").TerminalName);
+            Assert.Equal(1, Store.GetMappings().Count(m => m.Workstation == "CASHIER-01" && m.IsActive));
+
+            // EN: Set active switches the default; the other PC is not touched.   AR: تعيين الفعّال يغيّر الافتراضي ولا يمس الحاسوب الآخر.
+            Store.SetActiveMapping("CASHIER-01", TerminalProvider.NamiPay);
+            Assert.Equal("SKY-1", Store.GetMapping("CASHIER-01").TerminalName);
+            Assert.Equal(1, Store.GetMappings().Count(m => m.Workstation == "CASHIER-01" && m.IsActive));
+            Assert.Equal("SKY-2", Store.GetMapping("CASHIER-02").TerminalName);
+
+            // EN: Saving the inactive one unchanged does not steal "active"; saving it as active does.
+            // AR: حفظ غير الفعّال بدون تفعيل لا يأخذ "الفعّال"، وحفظه كفعّال يأخذه.
+            Store.SaveMapping(TestRecords.Mapping("CASHIER-01", "A920-2"));
+            Assert.Equal(TerminalProvider.NamiPay, Store.GetMapping("CASHIER-01").Provider);
+            TerminalMapping geidea = TestRecords.Mapping("CASHIER-01", "A920-2");
+            geidea.IsActive = true;
+            Store.SaveMapping(geidea);
+            Assert.Equal("A920-2", Store.GetMapping("CASHIER-01").TerminalName);
+            Assert.Equal(1, Store.GetMappings().Count(m => m.Workstation == "CASHIER-01" && m.IsActive));
+
+            // EN: Deleting the active one promotes the other.   AR: حذف الفعّال يرقّي الآخر.
+            Store.DeleteMapping("CASHIER-01", TerminalProvider.Geidea);
+            Assert.Equal("SKY-1", Store.GetMapping("CASHIER-01").TerminalName);
+            Store.DeleteMapping("CASHIER-01", TerminalProvider.NamiPay);
+            Assert.Null(Store.GetMapping("CASHIER-01"));
+            Assert.Equal(new[] { "CASHIER-02|NamiPay" }, Store.GetMappings().Select(m => m.Id).ToArray());
+        }
+
+        [Fact]
+        public void Set_active_of_an_unsaved_provider_is_rejected()
+        {
+            Store.EnsureCreated();
+            Store.SaveMapping(TestRecords.Mapping("CASHIER-01", "A920-1"));
+            Assert.Throws<ArgumentException>(() => Store.SetActiveMapping("CASHIER-01", TerminalProvider.NamiPay));
+            Assert.Equal(TerminalProvider.Geidea, Store.GetMapping("CASHIER-01").Provider);
+        }
+
+        private static TerminalMapping NamiPay(string workstation, string terminal, bool active)
+        {
+            TerminalMapping mapping = TestRecords.Mapping(workstation, terminal);
+            mapping.Provider = TerminalProvider.NamiPay;
+            mapping.ComPort = 9;
+            mapping.CashRegisterNumber = "12345678";
+            mapping.IsActive = active;
+            return mapping;
         }
 
         [Fact]
@@ -195,6 +253,25 @@ namespace CDLL.Tests.Storage
             _store.SaveMapping(TestRecords.Mapping(@"..\..\EVIL", "SPAN"));
             Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(_folder), "*.json"));
             Assert.Single(Directory.GetFiles(Path.Combine(_folder, "mappings")));
+        }
+
+        [Fact]
+        public void Previous_version_mapping_file_becomes_the_active_mapping()
+        {
+            // EN: The previous version wrote mappings\<WORKSTATION>.json with no Id / IsActive.
+            // AR: النسخة السابقة كتبت mappings\<WORKSTATION>.json بدون Id و IsActive.
+            string folder = Path.Combine(_folder, "mappings");
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "OLD-PC.json"),
+                "{ \"Workstation\": \"OLD-PC\", \"TerminalName\": \"SPAN-1\", \"Transport\": \"Com\", \"ComPort\": 8 }");
+
+            _store.EnsureCreated();
+
+            TerminalMapping migrated = _store.GetMapping("OLD-PC");
+            Assert.Equal("OLD-PC|Geidea", migrated.Id);
+            Assert.True(migrated.IsActive);
+            Assert.Equal("SPAN-1", migrated.TerminalName);
+            Assert.Equal(new[] { "OLD-PC_Geidea.json" }, Directory.GetFiles(folder).Select(Path.GetFileName).ToArray());
         }
 
         public override void Dispose()

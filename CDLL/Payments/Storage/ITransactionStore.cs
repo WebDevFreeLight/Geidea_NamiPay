@@ -27,14 +27,27 @@ namespace CDLL.Payments.Storage
 
         void SaveError(ErrorLogRecord record);
 
-        /// <summary>EN: Insert or replace the mapping of one workstation.  AR: إضافة أو استبدال ربط حاسوب واحد.</summary>
+        /// <summary>
+        /// EN: Insert or replace the mapping of one workstation + provider. Keeps exactly ONE active mapping per PC:
+        ///     saving an active mapping deactivates the PC's other one; the first mapping of a PC becomes active.
+        /// AR: إضافة أو استبدال ربط حاسوب + مزوّد. يضمن ربطاً فعّالاً واحداً لكل حاسوب: حفظ ربط فعّال يلغي تفعيل الآخر،
+        ///     وأول ربط للحاسوب يصبح فعّالاً.
+        /// </summary>
         void SaveMapping(TerminalMapping mapping);
 
-        /// <summary>EN: Removes a workstation's mapping (when its terminal moves to a new PC).  AR: حذف ربط حاسوب (عند نقل جهازه إلى حاسوب جديد).</summary>
-        void DeleteMapping(string workstation);
+        /// <summary>
+        /// EN: Removes one mapping of a PC. If it was the active one, the PC's other mapping becomes active.
+        /// AR: حذف ربط واحد للحاسوب. إذا كان الفعّال، يصبح الربط الآخر للحاسوب فعّالاً.
+        /// </summary>
+        void DeleteMapping(string workstation, TerminalProvider provider);
 
+        /// <summary>EN: Makes this provider the active (default) one of the PC.  AR: يجعل هذا المزوّد الفعّال (الافتراضي) للحاسوب.</summary>
+        void SetActiveMapping(string workstation, TerminalProvider provider);
+
+        /// <summary>EN: The ACTIVE mapping of the workstation (null = none).  AR: الربط الفعّال للحاسوب (null = لا يوجد).</summary>
         TerminalMapping GetMapping(string workstation);
 
+        /// <summary>EN: Every mapping of every PC (active and not).  AR: كل ربطات كل الحواسيب.</summary>
         IList<TerminalMapping> GetMappings();
 
         /// <summary>EN: Transactions with fromUtc &lt;= CreatedAtUtc &lt; toUtc, oldest first (audit / reports).  AR: العمليات ضمن الفترة، الأقدم أولاً (للتدقيق والتقارير).</summary>

@@ -108,14 +108,17 @@ namespace CDLL.Payments.Terminal
             Task<int> call = Task.Run(vendorCall);
 
             // EN: Release the gate only when the vendor call really returns: it can outlive the watchdog below.
+            //     The watchdog waits for THIS continuation (not for "call"), so the gate is already free when the
+            //     result comes back and the next call (e.g. NamiPay Purchase right after Start session) is never "busy".
             // AR: يُحرَّر القفل فقط عندما يعود الاستدعاء فعلاً، لأنه قد يستمر بعد انتهاء المراقب أدناه.
-            call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
+            //     المراقب ينتظر هذا الإكمال، فيكون القفل محرراً عند عودة النتيجة ولا يظهر "الجهاز مشغول" للاستدعاء التالي.
+            Task released = call.ContinueWith(t => { var ignored = t.Exception; _gate.Release(); }, TaskScheduler.Default);
 
             TimeSpan timeout = IsQuickCheck(result.Operation) ? _statusTimeout : _timeout;
-            Task finished = await Task.WhenAny(call, Task.Delay(timeout)).ConfigureAwait(false);
+            Task finished = await Task.WhenAny(released, Task.Delay(timeout)).ConfigureAwait(false);
             result.DurationMs = stopwatch.ElapsedMilliseconds;
 
-            if (finished != call)
+            if (finished != released)
             {
                 result.Outcome = TransactionOutcome.Timeout;
                 result.ErrorMessage = string.Format(CultureInfo.InvariantCulture,

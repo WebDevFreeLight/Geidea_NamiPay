@@ -40,7 +40,8 @@ namespace CDLL.Tests.Storage
             await _storage.GetMappingAsync("CASHIER-01");
             await _storage.GetMappingsAsync();
             await _storage.GetTransactionsAsync(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(1));
-            await _storage.DeleteMappingAsync("CASHIER-01", "t");
+            await _storage.SetActiveMappingAsync("CASHIER-01", TerminalProvider.Geidea, "t");
+            await _storage.DeleteMappingAsync("CASHIER-01", TerminalProvider.Geidea, "t");
 
             Assert.NotEmpty(_store.CallThreads);
             Assert.All(_store.CallThreads, id => Assert.Equal(_storage.WorkerThreadId, id));

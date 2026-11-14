@@ -142,6 +142,30 @@ namespace CDLL.Payments
         /// <summary>EN: NamiPay only: 8-digit cash register number.  AR: لـ NamiPay فقط: رقم الصندوق 8 أرقام.</summary>
         public string CashRegisterNumber { get; set; }
 
+        /// <summary>
+        /// EN: Key of the row: "WORKSTATION|Provider". A PC can keep one Geidea and one NamiPay mapping.
+        /// AR: مفتاح السجل: "الحاسوب|المزوّد". يمكن للحاسوب الاحتفاظ بربط Geidea وربط NamiPay.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// EN: The ONE mapping of this PC that Form1 uses (the default provider). The stores keep exactly one active per PC.
+        /// AR: الربط الوحيد لهذا الحاسوب الذي تستخدمه Form1 (المزوّد الافتراضي). التخزين يضمن ربطاً فعّالاً واحداً لكل حاسوب.
+        /// </summary>
+        public bool IsActive { get; set; }
+
+        public static string MakeId(string workstation, TerminalProvider provider)
+        {
+            return (workstation ?? "").Trim().ToUpperInvariant() + "|" + provider;
+        }
+
+        /// <summary>EN: Upper-case workstation and matching Id.  AR: اسم الحاسوب بحروف كبيرة ومفتاح مطابق.</summary>
+        public void Normalize()
+        {
+            Workstation = (Workstation ?? "").Trim().ToUpperInvariant();
+            Id = MakeId(Workstation, Provider);
+        }
+
         public TerminalConnection ToConnection()
         {
             return new TerminalConnection
