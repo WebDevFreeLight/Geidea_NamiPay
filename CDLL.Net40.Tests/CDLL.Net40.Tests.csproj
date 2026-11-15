@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EN: The same tests as ..\CDLL.Tests, run against the .NET Framework 4.0 build (CDLL40.exe).
+        xUnit needs .NET 4.5.2+, so the TEST project is net48; CDLL40.exe itself is compiled against the .NET 4.0
+        reference assemblies (no newer API can slip in) and runs here on the installed 4.x runtime, like on a PC.
+        A FAKE terminal is used, so no device is contacted and nothing is charged.
+        Run:  dotnet test CDLL.Net40.Tests
+    AR: نفس اختبارات ..\CDLL.Tests على نسخة ‎.NET Framework 4.0 (CDLL40.exe).
+        xUnit يحتاج 4.5.2+، لذلك مشروع الاختبار net48، أما CDLL40.exe فمبني على مكتبات المرجع لـ 4.0.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <LangVersion>7.3</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- EN: No shadow copy: SQLite loads x86\SQLite.Interop.dll from the folder of the test DLL.   AR: بدون نسخ ظلي حتى تجد SQLite مكتبتها الأصلية. -->
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CDLL.Net40\CDLL.Net40.csproj" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

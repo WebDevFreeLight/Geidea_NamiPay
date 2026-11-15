@@ -123,6 +123,7 @@
     <Compile Include="Payments\Terminal\Skyband\SkybandTerminalService.cs" />
     <Compile Include="Payments\Terminal\Skyband\SkybandTransport.cs" />
     <Compile Include="Payments\Terminal\TerminalRequests.cs" />
+    <Compile Include="LibraryLoader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -143,6 +144,16 @@
          AR: مكتبة ECR.dll الخاصة بـ NamiPay / SkyBand من مشروع NamiPay، تُنسخ بجانب CDLL.exe. -->
     <None Include="..\NamiPay\CoreSkybandECR\ECR.dll">
       <Link>ECR.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- EN: Geidea madaapi (32-bit) from Vendor\Geidea, copied to the output (then into libs).
+         AR: مكتبات Geidea (32 بت) من Vendor\Geidea تُنسخ إلى الإخراج (ثم إلى libs). -->
+    <None Include="..\Vendor\Geidea\madaapi_v1_8.dll">
+      <Link>madaapi_v1_8.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Vendor\Geidea\madaapi_v1_9.dll">
+      <Link>madaapi_v1_9.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Properties\Settings.settings">
@@ -173,4 +184,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- EN: After the build, move every DLL into bin\<Config>\libs (see build\Libraries.targets).   AR: نقل كل المكتبات إلى مجلد libs بعد البناء. -->
+  <Import Project="..\build\Libraries.targets" />
 </Project>

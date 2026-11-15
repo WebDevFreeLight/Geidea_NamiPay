@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  EN: Keeps the output folder clean: after every build, ALL libraries are moved out of bin\<Config>\ into one
+      sub-folder (default "libs"), so only the .exe and its .config stay next to each other:
+        bin\Debug\CDLL.exe
+        bin\Debug\CDLL.exe.config
+        bin\Debug\libs\*.dll            (NuGet packages, madaapi_v1_*.dll, ECR.dll, ...)
+        bin\Debug\libs\x86\ x64\ runtimes\   (native SQLite)
+      Old DLLs left next to the .exe by earlier builds are moved too, so they can never shadow the libs folder.
+      At runtime LibraryLoader (Program.cs) + <probing privatePath="libs"/> in app.config load them from there.
+      Change the folder name with  /p:LibrariesFolder=...  (and "Libraries.Folder" + privatePath in app.config).
+      Imported by CDLL.csproj and CDLL.Net40.csproj.
+  AR: يبقي مجلد الإخراج نظيفاً: بعد كل بناء تُنقل كل المكتبات من bin\<Config>\ إلى مجلد فرعي واحد (افتراضياً "libs")،
+      فيبقى الملف التنفيذي وملف إعداداته فقط بجانب بعضهما. المكتبات القديمة تُنقل أيضاً حتى لا تتعارض مع مجلد libs.
+      وقت التشغيل يحمّلها LibraryLoader (في Program.cs) و <probing privatePath="libs"/> في app.config من هناك.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <LibrariesFolder Condition="'$(LibrariesFolder)' == ''">libs</LibrariesFolder>
+  </PropertyGroup>
+
+  <Target Name="MoveLibrariesToSubfolder" AfterTargets="Build" Condition="'$(LibrariesFolder)' != 'none'">
+    <PropertyGroup>
+      <_LibrariesDir>$(OutDir)$(LibrariesFolder)\</_LibrariesDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RootLibrary Include="$(OutDir)*.dll;$(OutDir)*.xml" />
+      <_RootLibrary Include="$(OutDir)*.pdb" Exclude="$(OutDir)$(TargetName).pdb" />
+      <_NativeLibrary Include="$(OutDir)x86\**\*" Folder="x86\" />
+      <_NativeLibrary Include="$(OutDir)x64\**\*" Folder="x64\" />
+      <_NativeLibrary Include="$(OutDir)runtimes\**\*" Folder="runtimes\" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_RootLibrary)" DestinationFolder="$(_LibrariesDir)" />
+    <Copy SourceFiles="@(_NativeLibrary)" DestinationFiles="@(_NativeLibrary->'$(_LibrariesDir)%(Folder)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Delete Files="@(_RootLibrary);@(_NativeLibrary)" ContinueOnError="true" />
+    <RemoveDir Directories="$(OutDir)x86;$(OutDir)x64;$(OutDir)runtimes" ContinueOnError="true" />
+
+    <Message Importance="high" Text="$(MSBuildProjectName): libraries -> $(_LibrariesDir)" />
+  </Target>
+
+  <!-- EN: Clean / Rebuild also empties the libs folder.   AR: التنظيف وإعادة البناء يفرّغان مجلد libs أيضاً. -->
+  <Target Name="CleanLibrariesSubfolder" AfterTargets="Clean" Condition="'$(LibrariesFolder)' != 'none'">
+    <RemoveDir Directories="$(OutDir)$(LibrariesFolder)" ContinueOnError="true" />
+  </Target>
+</Project>

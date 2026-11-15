@@ -1,5 +1,6 @@
 using System;
 using System.Configuration;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Forms;
 using CDLL.Payments;
@@ -22,6 +23,20 @@ namespace CDLL
         // AR: الخاصية [STAThread] مطلوبة في Windows Forms (نموذج الخيط الواحد للواجهة و COM).
         [STAThread]
         static void Main()
+        {
+            // EN: FIRST: load every DLL from the libraries folder (default "libs"), not from the .exe folder.
+            // AR: أولاً: تحميل كل المكتبات من مجلد المكتبات (افتراضياً "libs") وليس من مجلد البرنامج.
+            LibraryLoader.Install();
+            Run();
+        }
+
+        /// <summary>
+        /// EN: The real startup. A separate, never-inlined method so that nothing in it is loaded before
+        ///     LibraryLoader.Install() has run.
+        /// AR: بدء التشغيل الفعلي في دالة منفصلة (بدون inlining) حتى لا يُحمّل شيء منها قبل LibraryLoader.Install().
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void Run()
         {
             // EN: Use the modern Windows look for buttons and controls.
             // AR: استخدام المظهر الحديث لنظام Windows للأزرار وعناصر الواجهة.

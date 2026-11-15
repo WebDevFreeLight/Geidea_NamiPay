@@ -5,12 +5,9 @@
 *.exe
 *.vshost.*
 
-# Keep the native mada payment DLLs loaded via DllImport at runtime
-# (NewImplementations/Mada.Api links these same files, so they are the single source)
-!CDLL/bin/Debug/
-CDLL/bin/Debug/*
-!CDLL/bin/Debug/madaapi_v1_8.dll
-!CDLL/bin/Debug/madaapi_v1_9.dll
+# The native mada payment DLLs (DllImport) live in Vendor/Geidea/ (CDLL, CDLL.Net40 and
+# NewImplementations/Mada.Api link these same files, so they are the single source).
+# *.dll is NOT ignored outside bin/, so Vendor/ and NamiPay/ DLLs stay tracked.
 
 # Runtime logs / receipts (may contain transaction data)
 ECRLOG_*.txt

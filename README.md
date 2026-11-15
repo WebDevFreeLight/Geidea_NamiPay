@@ -12,11 +12,31 @@
 |---|---|
 | Windows + Visual Studio (or MSBuild) | نظام Windows مع Visual Studio (أو MSBuild) |
 | .NET Framework 4.8 | ‎.NET Framework 4.8 |
-| `madaapi_v1_9.dll` and `madaapi_v1_8.dll` next to `CDLL.exe` (already in `CDLL/bin/Debug/`) | وجود `madaapi_v1_9.dll` و `madaapi_v1_8.dll` بجانب `CDLL.exe` (موجودتان في `CDLL/bin/Debug/`) |
+| `madaapi_v1_9.dll` and `madaapi_v1_8.dll` (kept in `Vendor/Geidea/`, copied to `bin\<Config>\libs\` by the build) | `madaapi_v1_9.dll` و `madaapi_v1_8.dll` (في `Vendor/Geidea/` وتُنسخ إلى `bin\<Config>\libs\` عند البناء) |
 | A mada terminal connected by USB (shows as a COM port) or on the same network | جهاز مدى متصل عبر USB (يظهر كمنفذ COM) أو على نفس الشبكة |
 
-> **EN:** Build the **Debug** configuration. The DLLs are only in `bin/Debug`, so for Release copy them into `bin/Release` too.
-> **AR:** ابنِ إعداد **Debug**. المكتبات موجودة فقط في `bin/Debug`، لذلك عند استخدام Release انسخها إلى `bin/Release` أيضاً.
+> **EN:** Debug and Release both work: every build copies all DLLs into its own `libs` folder (see below).
+> **AR:** إعداد Debug و Release يعملان: كل بناء ينسخ كل المكتبات إلى مجلد `libs` الخاص به (انظر أدناه).
+
+## Libraries folder / مجلد المكتبات
+
+**EN:** All libraries live in ONE sub-folder, not next to the .exe, so DLLs of other programs or old builds can never conflict:
+**AR:** كل المكتبات في مجلد فرعي واحد وليس بجانب البرنامج، حتى لا تتعارض مكتبات برامج أخرى أو نسخ قديمة:
+
+```
+bin\Debug\CDLL.exe                 (CDLL40.exe for the .NET 4.0 build)
+bin\Debug\CDLL.exe.config
+bin\Debug\libs\*.dll              NuGet DLLs, madaapi_v1_8/9.dll (Geidea), ECR.dll (NamiPay)
+bin\Debug\libs\runtimes\ x86\ x64\  native SQLite
+```
+
+| Part | EN | AR |
+|---|---|---|
+| Build | `build\Libraries.targets` (imported by both apps) moves every DLL into `libs` after each build, including old DLLs left next to the .exe; Clean / Rebuild empties it. Other folder name: `msbuild /p:LibrariesFolder=...` | ينقل كل المكتبات إلى `libs` بعد كل بناء، ومنها القديمة بجانب البرنامج |
+| .NET DLLs | `<probing privatePath="libs"/>` in `app.config`, plus `LibraryLoader` (`AssemblyResolve`) for anything else | عبر `probing` في `app.config` ثم `LibraryLoader` |
+| Native DLLs | `LibraryLoader` calls `SetDllDirectory(libs)` first thing in `Main`, so `[DllImport]` finds madaapi, ECR.dll and SQLite there | `SetDllDirectory` في بداية `Main` حتى تجد `[DllImport]` المكتبات |
+| `Libraries.Folder` | `app.config` setting: `libs` (default), another sub-folder, a full path or `%ProgramData%\CDLL\libs` (shared by several apps). If it is outside the .exe folder, `LibraryLoader` loads from it | إعداد في `app.config`: `libs` أو مسار كامل أو مجلد مشترك |
+| Deploy | Copy the .exe, its .config and the whole `libs` folder | انسخ البرنامج وملف الإعدادات ومجلد `libs` كاملاً |
 
 ## Setup / الإعداد
 
@@ -86,6 +106,21 @@ dotnet test CDLL.Tests --no-build
 
 **EN:** Or use Test Explorer in Visual Studio. (`dotnet build` cannot build the old-style `CDLL.csproj` with its NuGet packages; use MSBuild / Visual Studio.)
 **AR:** أو استخدم Test Explorer في Visual Studio. (`dotnet build` لا يستطيع بناء مشروع `CDLL.csproj` القديم مع حزم NuGet، استخدم MSBuild أو Visual Studio.)
+
+## .NET Framework 4.0 build / نسخة ‎.NET Framework 4.0
+
+**EN:** `CDLL.Net40` is the same application (same screens, Geidea + NamiPay, storage, mapping, audit) built for **.NET Framework 4.0**, for PCs that cannot install 4.5+. It builds `CDLL40.exe`; namespaces, `app.config` keys and the database format are unchanged, so both versions can share the same `payments.db` / SQL Server database. `CDLL.Net40.Tests` runs the same 151 tests against it.
+**AR:** `CDLL.Net40` هو نفس التطبيق (نفس الشاشات و Geidea و NamiPay والتخزين والربط والتدقيق) مبنياً على **‎.NET Framework 4.0** للأجهزة التي لا يمكن تثبيت 4.5+ عليها. الناتج `CDLL40.exe`، وأسماء النطاقات ومفاتيح `app.config` وصيغة القاعدة كما هي، فيمكن للنسختين مشاركة نفس القاعدة. ومشروع `CDLL.Net40.Tests` يشغّل نفس الاختبارات الـ151 عليه.
+
+| Difference | EN | AR |
+|---|---|---|
+| async / await | `Microsoft.Bcl.Async` (`TaskEx.Run`, `TaskEx.Delay`, `TaskEx.WhenAny`, `TaskEx.FromResult`); binding redirects for `System.Runtime` / `System.Threading.Tasks` 2.6.8 are in `app.config` | من `Microsoft.Bcl.Async`، وتوجيهات الإصدارات موجودة في `app.config` |
+| SQLite | `System.Data.SQLite` (Microsoft.Data.Sqlite needs 4.6.1+); native `x86\SQLite.Interop.dll` is copied to the output | `System.Data.SQLite` مع المكتبة الأصلية `x86\SQLite.Interop.dll` |
+| Build | 4.0 reference assemblies come from NuGet (`Microsoft.NETFramework.ReferenceAssemblies`), so no targeting pack is needed; any API newer than 4.0 fails to compile | مكتبات المرجع لـ 4.0 من NuGet، وأي واجهة أحدث من 4.0 تفشل في البناء |
+| Deploy | Copy `CDLL40.exe`, `CDLL40.exe.config` and the whole `libs` folder (it holds `x86\SQLite.Interop.dll`, the `Microsoft.Threading.Tasks*`, `System.Runtime`, `System.Threading.Tasks`, `System.IO` DLLs, `ECR.dll` and `madaapi_v1_*.dll`) | انسخ البرنامج وملف الإعدادات ومجلد `libs` كاملاً |
+
+> **EN:** The two projects are separate copies: a fix in `CDLL` must also be made in `CDLL.Net40` (and the tests in both test projects).
+> **AR:** المشروعان نسختان منفصلتان: أي إصلاح في `CDLL` يجب تطبيقه أيضاً في `CDLL.Net40` (والاختبارات في المشروعين).
 
 ## Logs / السجلات
 

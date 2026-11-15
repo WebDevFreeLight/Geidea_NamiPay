@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  EN: The same application as ..\CDLL, built for .NET Framework 4.0 (older hospital PCs, e.g. Windows XP / 7
+      without .NET 4.5+). Differences from CDLL:
+        - async / await comes from Microsoft.Bcl.Async (TaskEx.Run / TaskEx.Delay / TaskEx.WhenAny ...)
+        - SQLite uses System.Data.SQLite (Microsoft.Data.Sqlite needs .NET 4.6.1+); same database file format
+        - .NET 4.0 reference assemblies come from NuGet, so no targeting pack has to be installed
+      Output: CDLL40.exe (namespaces are unchanged: CDLL.*).
+  AR: نفس تطبيق ..\CDLL مبني على ‎.NET Framework 4.0 (لأجهزة المستشفى القديمة بدون ‎.NET 4.5+). الفروقات:
+        - async / await من Microsoft.Bcl.Async (TaskEx.Run / TaskEx.Delay / TaskEx.WhenAny ...)
+        - SQLite عبر System.Data.SQLite (لأن Microsoft.Data.Sqlite يحتاج 4.6.1+)، ونفس صيغة ملف القاعدة
+        - مكتبات المرجع لـ 4.0 من NuGet، فلا حاجة لتثبيت حزمة الاستهداف
+      الناتج: CDLL40.exe (أسماء النطاقات كما هي: CDLL.*).
+-->
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6EEA865F-7D44-48C9-AAE5-978D9BA71E65}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>CDLL</RootNamespace>
+    <AssemblyName>CDLL40</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <LangVersion>7.3</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <!-- EN: What Microsoft.Bcl.Build's targets set (PackageReference does not import them): lets the
+             System.Runtime / System.Threading.Tasks facades of Microsoft.Bcl satisfy Microsoft.Bcl.Async.
+         AR: ما تضبطه أهداف Microsoft.Bcl.Build (لا يستوردها PackageReference) حتى تعمل Microsoft.Bcl.Async. -->
+    <AutoUnifyAssemblyReferences>false</AutoUnifyAssemblyReferences>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <!-- EN: x86: madaapi and ECR.dll are 32-bit.   AR: x86 لأن madaapi و ECR.dll بنظام 32 بت. -->
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NET40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NET40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- EN: .NET 4.0 reference assemblies (build only).   AR: مكتبات المرجع لـ 4.0 (للبناء فقط). -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- EN: async / await on .NET 4.0.   AR: async / await على ‎.NET 4.0. -->
+    <PackageReference Include="Microsoft.Bcl.Async" Version="1.0.168" />
+    <!-- EN: SQLite for .NET 4.0 (bundles the native SQLite.Interop.dll).   AR: SQLite لـ 4.0 (مع المكتبة الأصلية). -->
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SimulatorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SimulatorForm.Designer.cs">
+      <DependentUpon>SimulatorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Simulator\MadaApiSimulator.cs" />
+    <Compile Include="Payments\PaymentModels.cs" />
+    <Compile Include="Payments\PaymentServices.cs" />
+    <Compile Include="Payments\ComPortPicker.cs" />
+    <Compile Include="Payments\WaitingCounter.cs" />
+    <Compile Include="Payments\Integration\IHisNotifier.cs" />
+    <Compile Include="Payments\Integration\HisBillingRules.cs" />
+    <Compile Include="Payments\Mapping\MappingAuthorization.cs" />
+    <Compile Include="Payments\Mapping\TerminalMappingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Payments\Mapping\TerminalMappingForm.Designer.cs">
+      <DependentUpon>TerminalMappingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Payments\Storage\ActivityLog.cs" />
+    <Compile Include="Payments\Storage\ITransactionStore.cs" />
+    <Compile Include="Payments\Storage\JsonTransactionStore.cs" />
+    <Compile Include="Payments\Storage\PaymentStorage.cs" />
+    <Compile Include="Payments\Storage\PendingJsonQueue.cs" />
+    <Compile Include="Payments\Storage\SqliteTransactionStore.cs" />
+    <Compile Include="Payments\Storage\SqlServerTransactionStore.cs" />
+    <Compile Include="Payments\Storage\SqlTransactionStore.cs" />
+    <Compile Include="Payments\Storage\TableSchema.cs" />
+    <Compile Include="Payments\Terminal\CardDataMasker.cs" />
+    <Compile Include="Payments\Terminal\IMadaNativeApi.cs" />
+    <Compile Include="Payments\Terminal\IPaymentTerminalService.cs" />
+    <Compile Include="Payments\Terminal\MadaNativeMethods.cs" />
+    <Compile Include="Payments\Terminal\MadaTerminalService.cs" />
+    <Compile Include="Payments\Terminal\OutcomeClassifier.cs" />
+    <Compile Include="Payments\Terminal\SerialPorts.cs" />
+    <Compile Include="Payments\Terminal\TerminalServiceBase.cs" />
+    <Compile Include="Payments\Terminal\ProviderTerminalService.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandProtocol.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandSimulator.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandStateStore.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandTerminalService.cs" />
+    <Compile Include="Payments\Terminal\Skyband\SkybandTransport.cs" />
+    <Compile Include="Payments\Terminal\TerminalRequests.cs" />
+    <Compile Include="LibraryLoader.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- EN: Vendor DLLs (32-bit), copied next to CDLL40.exe: NamiPay ECR.dll and Geidea madaapi.
+         AR: مكتبات المورّدين (32 بت) تُنسخ بجانب CDLL40.exe: ECR.dll الخاصة بـ NamiPay و madaapi الخاصة بـ Geidea. -->
+    <None Include="..\NamiPay\CoreSkybandECR\ECR.dll">
+      <Link>ECR.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Vendor\Geidea\madaapi_v1_8.dll">
+      <Link>madaapi_v1_8.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Vendor\Geidea\madaapi_v1_9.dll">
+      <Link>madaapi_v1_9.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- EN: After the build, move every DLL into bin\<Config>\libs (see build\Libraries.targets).   AR: نقل كل المكتبات إلى مجلد libs بعد البناء. -->
+  <Import Project="..\build\Libraries.targets" />
+</Project>

@@ -36,8 +36,8 @@
       AR: إعادة استخدام مكتبات المورّد الموجودة في المثال القديم (CDLL\bin\Debug) بدلاً من نسخة ثانية.
           تُنسخ بجانب Mada.Api.exe عند البناء، وهناك يجدها [DllImport].
     -->
-    <None Include="..\..\CDLL\bin\Debug\madaapi_v1_8.dll" Link="madaapi_v1_8.dll" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\CDLL\bin\Debug\madaapi_v1_9.dll" Link="madaapi_v1_9.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Vendor\Geidea\madaapi_v1_8.dll" Link="madaapi_v1_8.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Vendor\Geidea\madaapi_v1_9.dll" Link="madaapi_v1_9.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
